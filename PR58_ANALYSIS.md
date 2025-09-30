@@ -279,32 +279,13 @@ Before porting, we need to verify:
 
 ## Suggested PR Comment for #58
 
-```markdown
-Thank you for this comprehensive contribution @MegaManSec! 
+See `/tmp/pr58_comment.md` for the detailed comment to post on the PR.
 
-The master branch has migrated from pyparsing to crossplane for nginx config parsing, 
-which makes the parser-specific changes (raw_parser.py) in this PR obsolete. However, 
-the **core functionality you've implemented is still critically needed**.
-
-Current master has FALSE NEGATIVES for security issues in map/geo blocks:
-- SSRF vulnerabilities passed through map variables are not detected
-- HTTP splitting through map variables is not detected
-- Variables from map blocks are not properly tracked
-
-I will extract and port the following functionality for crossplane:
-✅ MapDirective class for map/geo entries
-✅ Enhanced MapBlock/GeoBlock variable tracking
-✅ Variable context tracking (ctx parameter)
-✅ Enhanced variable analysis (can_contain, must_contain, etc.)
-✅ hash_without_default plugin
-✅ Comprehensive test cases
-
-The pyparsing-specific changes (raw_parser.py modifications) will not be needed since 
-crossplane handles parsing differently, but the directive/variable tracking logic is 
-highly valuable.
-
-This is excellent work identifying a significant gap in gixy's security analysis!
-```
+**Summary**: 
+- Close PR as pyparsing-specific implementation cannot merge
+- Port core functionality to crossplane-based parser
+- Credit @MegaManSec for identifying the gap and the solution approach
+- Offer collaboration on the port
 
 ## Next Steps
 
