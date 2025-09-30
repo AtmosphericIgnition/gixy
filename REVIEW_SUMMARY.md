@@ -4,7 +4,10 @@
 **PR #58 is NOT directly applicable to master** (pyparsing-based implementation), **BUT the functionality it provides is critically needed** and should be ported to the crossplane-based parser.
 
 ## The Issue PR #58 Solves
-Gixy currently has **FALSE NEGATIVES** - it cannot detect security vulnerabilities passed through `map` and `geo` blocks:
+Gixy currently has **FALSE NEGATIVES** - it cannot detect security vulnerabilities passed through `map` and `geo` blocks.
+
+### Visual Demonstration
+Run `./demonstrate_pr58_issue.sh` to see the false negatives in action.
 
 ### Confirmed False Negative 1: HTTP Splitting
 ```bash
@@ -42,6 +45,23 @@ $ gixy test.conf --skips version_disclosure
 No issues found.  # WRONG - should detect SSRF!
 ```
 
+### Root Cause
+```python
+# Current MapBlock.variables implementation:
+@cached_property
+def variables(self):
+    # TODO(buglloc): Finish him!
+    return [
+        Variable(
+            name=self.variable,
+            value="",  # ❌ EMPTY - doesn't track actual values!
+            boundary=None,
+            provider=self,
+            have_script=False,
+        )
+    ]
+```
+
 ## Why Can't PR #58 Merge?
 Master has migrated from **pyparsing** to **crossplane** for parsing. PR #58 modifies the pyparsing-based parser which no longer exists.
 
@@ -56,10 +76,23 @@ Master has migrated from **pyparsing** to **crossplane** for parsing. PR #58 mod
 
 ## Documents Created
 - `PR58_ANALYSIS.md` - Full technical analysis (11KB)
+- `REVIEW_SUMMARY.md` - This quick summary
 - `/tmp/pr58_comment.md` - Suggested comment for PR #58
+- `demonstrate_pr58_issue.sh` - Visual demonstration script
 
 ## Recommendation
 1. Post comment from `/tmp/pr58_comment.md` to PR #58
 2. Close PR #58 (not mergeable as-is)
 3. Create new PR/issue to port functionality to crossplane
 4. Credit @MegaManSec for identifying the gap and solution approach
+
+## Testing the Demonstration
+```bash
+./demonstrate_pr58_issue.sh
+```
+
+This will show:
+- HTTP Splitting false negative
+- SSRF false negative  
+- Current empty variable tracking in MapBlock
+
