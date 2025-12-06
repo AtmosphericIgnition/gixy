@@ -4,7 +4,7 @@ except ImportError:
     from functools import cached_property
 
 from gixy.directives.directive import Directive, MapDirective
-from gixy.core.variable import Variable
+from gixy.core.variable import Variable, compile_script
 from gixy.core.regexp import Regexp
 
 
@@ -197,15 +197,30 @@ class IfBlock(Block):
           if ($var ~* (a)(b)) { return 301 /$1/$2; }
 
         We expose numeric backrefs like 0, 1, 2... similar to location ~ and rewrite.
+        The boundary is inherited from the source variable being tested (e.g., $request_uri).
         """
         # Only conditions with regex operators can yield capture groups
         if self.operand in ("~", "~*", "!~", "!~*") and self.value:
             case_sensitive = self.operand in ("~", "!~")
             regexp = Regexp(self.value, case_sensitive=case_sensitive)
+
+            # Get boundary from the source variable (e.g., $request_uri)
+            # This ensures capture groups inherit the source's constraints
+            boundary = None
+            if self.variable:
+                try:
+                    compiled = compile_script(self.variable)
+                    if len(compiled) == 1:
+                        # Use the source variable's regexp as boundary
+                        boundary = compiled[0].regexp
+                except (IndexError, AttributeError):
+                    # No context available (e.g., unit tests without full setup)
+                    pass
+
             result = []
             for name, group in regexp.groups.items():
                 result.append(
-                    Variable(name=name, value=group, boundary=group, provider=self)
+                    Variable(name=name, value=group, boundary=boundary, provider=self)
                 )
             return result
         return []
