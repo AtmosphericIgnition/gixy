@@ -27,7 +27,6 @@ ALLOWED_EXTERNAL_URLS = {
 
 
 def get_plugin_classes(file_path):
-    # type: (Path) -> List[Tuple[str, Optional[str]]]
     """
     Parse a Python file and extract plugin class names and their help_url values.
 
@@ -79,7 +78,6 @@ def get_plugin_classes(file_path):
 
 
 def check_help_url(plugin_name, help_url):
-    # type: (str, Optional[str]) -> Tuple[bool, str]
     """
     Check if a plugin's help_url is valid.
 
@@ -116,7 +114,6 @@ def check_help_url(plugin_name, help_url):
 
 
 def main():
-    # type: () -> int
     """
     Main function to check all plugin help_urls.
 
