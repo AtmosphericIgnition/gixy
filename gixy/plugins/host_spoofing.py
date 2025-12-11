@@ -11,9 +11,7 @@ class host_spoofing(Plugin):
     summary = "The proxied Host header may be spoofed."
     severity = gixy.severity.MEDIUM
     description = 'In most cases "$host" variable are more appropriate, just use it.'
-    help_url = (
-        "https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/hostspoofing.md"
-    )
+    help_url = "https://gixy.getpagespeed.com/plugins/hostspoofing/"
     directives = ["proxy_set_header"]
 
     def audit(self, directive):
@@ -22,5 +20,28 @@ class host_spoofing(Plugin):
             # Not a "Host" header
             return
 
-        if value == "$http_host" or value.startswith("$arg_"):
-            self.add_issue(directive=directive)
+        if value == "$http_host":
+            self.add_issue(
+                directive=directive,
+                fixes=[
+                    self.make_fix(
+                        title="Replace $http_host with $host",
+                        search="$http_host",
+                        replace="$host",
+                        description="Use $host which is safer and normalizes the Host header",
+                    ),
+                ],
+            )
+        elif value.startswith("$arg_"):
+            self.add_issue(
+                directive=directive,
+                reason=f'Host header set from user-controlled variable "{value}"',
+                fixes=[
+                    self.make_fix(
+                        title="Replace with $host",
+                        search=value,
+                        replace="$host",
+                        description="Use $host instead of user-controlled variable",
+                    ),
+                ],
+            )

@@ -19,7 +19,7 @@ class invalid_regex(Plugin):
     summary = "Using a nonexistent regex capture group."
     severity = gixy.severity.MEDIUM
     description = "Referencing a capture group (like $1, $2) that does not exist in the regex pattern will result in an empty value."
-    help_url = "https://nginx.org/en/docs/http/ngx_http_rewrite_module.html"
+    help_url = "https://gixy.getpagespeed.com/plugins/invalid_regex/"
     directives = ["rewrite", "set"]
 
     # Pattern to find $1, $2, etc. references in strings

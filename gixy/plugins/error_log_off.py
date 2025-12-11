@@ -15,7 +15,7 @@ class error_log_off(Plugin):
     summary = "The error_log directive does not take the off parameter."
     severity = gixy.severity.MEDIUM
     description = "The error_log directive should not be set to off. It should be set to a valid file path."
-    help_url = "https://gixy.getpagespeed.com/en/plugins/error_log_off/"
+    help_url = "https://gixy.getpagespeed.com/plugins/error_log_off/"
     directives = ["error_log"]
 
     def audit(self, directive):
@@ -24,4 +24,18 @@ class error_log_off(Plugin):
                 severity=self.severity,
                 directive=[directive],
                 reason="The error_log directive should not be set to off.",
+                fixes=[
+                    self.make_fix(
+                        title="Set error_log to file path",
+                        search="error_log off",
+                        replace="error_log /var/log/nginx/error.log warn",
+                        description="Log errors to a file for debugging and security monitoring",
+                    ),
+                    self.make_fix(
+                        title="Discard errors to /dev/null",
+                        search="error_log off",
+                        replace="error_log /dev/null crit",
+                        description="If you really want to discard logs, use /dev/null with crit level",
+                    ),
+                ],
             )

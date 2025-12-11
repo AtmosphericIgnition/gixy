@@ -13,7 +13,7 @@ class resolver_external(Plugin):
         "Using external nameservers allows someone to send spoofed DNS replies to poison the resolver "
         "cache, causing NGINX to proxy HTTP requests to an arbitrary upstream server."
     )
-    help_url = "https://gixy.getpagespeed.com/en/plugins/resolver_external/"
+    help_url = "https://gixy.getpagespeed.com/plugins/resolver_external/"
     directives = ["resolver"]
 
     def audit(self, directive):
@@ -25,4 +25,18 @@ class resolver_external(Plugin):
                 reason="Found use of external DNS servers {dns_servers}".format(
                     dns_servers=", ".join(bad_nameservers)
                 ),
+                fixes=[
+                    self.make_fix(
+                        title="Use local resolver (systemd-resolved)",
+                        search=" ".join(bad_nameservers),
+                        replace="127.0.0.53",
+                        description="Use systemd-resolved local stub resolver",
+                    ),
+                    self.make_fix(
+                        title="Use localhost resolver",
+                        search=" ".join(bad_nameservers),
+                        replace="127.0.0.1",
+                        description="Use local DNS resolver on 127.0.0.1",
+                    ),
+                ],
             )

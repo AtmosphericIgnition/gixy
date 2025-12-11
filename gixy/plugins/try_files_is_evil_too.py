@@ -26,4 +26,13 @@ class try_files_is_evil_too(Plugin):
                 severity=gixy.severity.MEDIUM,
                 directive=[directive],
                 reason="The try_files directive introduces performance overhead without open_file_cache",
+                fixes=[
+                    self.make_fix(
+                        title="Add open_file_cache directive",
+                        search=str(directive),
+                        replace=str(directive)
+                        + "\n    open_file_cache max=1000 inactive=20s;",
+                        description="Enable file caching to reduce disk I/O overhead",
+                    ),
+                ],
             )

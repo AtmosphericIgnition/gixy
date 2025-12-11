@@ -24,6 +24,12 @@ class JsonFormatter(BaseFormatter):
                     entry["line"] = location.get("line")
                     if location.get("file"):
                         entry["file"] = location["file"]
+
+                # Include fixes if available (for IDE integrations)
+                fixes = issue.get("fixes")
+                if fixes:
+                    entry["fixes"] = fixes
+
                 result.append(entry)
 
         return json.dumps(result, sort_keys=True, indent=2, separators=(",", ": "))

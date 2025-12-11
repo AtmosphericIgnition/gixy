@@ -11,7 +11,7 @@ class allow_without_deny(Plugin):
     summary = "Found allow directive(s) without deny in the same context."
     severity = gixy.severity.HIGH
     description = 'The "allow" directives should be typically accompanied by "deny all;" directive.'
-    help_url = "https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/allow_without_deny.md"
+    help_url = "https://gixy.getpagespeed.com/plugins/allow_without_deny/"
     directives = ["allow"]
 
     def audit(self, directive):
@@ -34,4 +34,17 @@ class allow_without_deny(Plugin):
                 deny_found = True
         if not deny_found:
             reason = 'You probably want "deny all;" after all the "allow" directives'
-            self.add_issue(directive=directive, reason=reason)
+            # Find the last allow directive to suggest where to add deny
+            last_allow_line = str(directive)
+            self.add_issue(
+                directive=directive,
+                reason=reason,
+                fixes=[
+                    self.make_fix(
+                        title='Add "deny all;" after allow directives',
+                        search=last_allow_line,
+                        replace=last_allow_line + "\n    deny all;",
+                        description="Add deny all to complete the access control list",
+                    ),
+                ],
+            )

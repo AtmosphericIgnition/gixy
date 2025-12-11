@@ -46,7 +46,12 @@ class BaseFormatter:
                 "help_url": issue.help_url or help_url,
                 "reason": issue.reason or "",
             }
-            key = "".join(report.values())
+
+            # Include fixes if available (for IDE integrations)
+            if issue.fixes:
+                report["fixes"] = [fix.to_dict() for fix in issue.fixes]
+
+            key = "".join(str(v) for v in report.values() if isinstance(v, str))
             expanded_directives = []
             if any(
                 isinstance(value, (MapBlock, GeoBlock)) for value in issue.directives

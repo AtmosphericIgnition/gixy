@@ -50,9 +50,7 @@ class origins(Plugin):
     severity_insecure_referer = gixy.severity.MEDIUM
     severity_insecure_origin = gixy.severity.HIGH
     description = "Improve the regular expression to match only correct and trusted referers and origins."
-    help_url = (
-        "https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/origins.md"
-    )
+    help_url = "https://gixy.getpagespeed.com/plugins/origins/"
     directives = ["if"]
     supports_full_config = True
     options = {"domains": ["*"], "https_only": False, "lower_hostname": True}

@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.19] - 2024-12-12
+
+### Added
+- **Quick Fix Support**: Plugins now return machine-readable fix suggestions in JSON output for IDE integration.
+  - `Fix` class in `gixy.core.issue` with `title`, `search`, `replace`, and optional `description` fields.
+  - Plugins can use `self.make_fix()` helper to create fixes.
+  - JSON formatter includes `fixes` array for each issue.
+- **Plugin fixes implemented**:
+  - `version_disclosure`: Set `server_tokens off`
+  - `host_spoofing`: Replace `$http_host` with `$host`
+  - `add_header_content_type`: Use `default_type` instead of `add_header Content-Type`
+  - `allow_without_deny`: Add `deny all;` after allow directives
+  - `valid_referers`: Remove `none` from referers
+  - `error_log_off`: Set proper error_log path
+  - `resolver_external`: Use internal DNS resolver
+  - `low_keepalive_requests`: Increase keepalive_requests to 10000
+- **Pre-commit hooks**: Added `.pre-commit-config.yaml` with plugin help_url validation.
+- **CI checks**: Enhanced GitHub Actions workflow with plugin validation checks.
+
+### Fixed
+- `version_disclosure` plugin no longer double-reports when `server_tokens on` is at http level.
+- Plugin help_url validation script now correctly handles edge cases.
+
+### Changed
+- All plugin `help_url` attributes now consistently point to `https://gixy.getpagespeed.com/plugins/`.
+
 ## [0.2.14] - 2025-12-06
 
 ### Added
@@ -51,4 +77,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.12] and earlier
 
 See [GitHub Releases](https://github.com/dvershinin/gixy/releases) for previous changelog entries.
-

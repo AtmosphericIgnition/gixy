@@ -11,9 +11,24 @@ class valid_referers(Plugin):
     summary = 'Used "none" as valid referer.'
     severity = gixy.severity.HIGH
     description = "Never trust undefined referer."
-    help_url = "https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/validreferers.md"
+    help_url = "https://gixy.getpagespeed.com/plugins/validreferers/"
     directives = ["valid_referers"]
 
     def audit(self, directive):
         if "none" in directive.args:
-            self.add_issue(directive=directive)
+            # Build the fixed args list without 'none'
+            fixed_args = [arg for arg in directive.args if arg != "none"]
+            fixed_directive = "valid_referers " + " ".join(fixed_args) + ";"
+            original_directive = "valid_referers " + " ".join(directive.args) + ";"
+
+            self.add_issue(
+                directive=directive,
+                fixes=[
+                    self.make_fix(
+                        title='Remove "none" from valid_referers',
+                        search=original_directive,
+                        replace=fixed_directive,
+                        description="Remove 'none' to prevent empty referer bypass",
+                    ),
+                ],
+            )

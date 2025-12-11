@@ -12,7 +12,7 @@ class add_header_content_type(Plugin):
     summary = "Found add_header usage for setting Content-Type."
     severity = gixy.severity.LOW
     description = 'Target Content-Type in NGINX should not be set via "add_header"'
-    help_url = "https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/add_header_content_type.md"
+    help_url = "https://gixy.getpagespeed.com/plugins/add_header_content_type/"
     directives = ["add_header"]
 
     def audit(self, directive: AddHeaderDirective):
@@ -23,7 +23,18 @@ class add_header_content_type(Plugin):
                 return
 
             reason = f'You probably want "default_type {directive.value};" instead of "add_header" or "more_set_headers"'
-            self.add_issue(directive=directive, reason=reason)
+            self.add_issue(
+                directive=directive,
+                reason=reason,
+                fixes=[
+                    self.make_fix(
+                        title="Replace with default_type",
+                        search=str(directive).rstrip(";") + ";",
+                        replace=f"default_type {directive.value};",
+                        description="Use default_type which is the proper way to set Content-Type",
+                    ),
+                ],
+            )
 
     def _has_hide_header_content_type(self, directive: AddHeaderDirective):
         """Check if *_hide_header Content-Type exists in the same scope or parent scopes"""

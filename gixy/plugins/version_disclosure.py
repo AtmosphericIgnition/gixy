@@ -14,7 +14,7 @@ class version_disclosure(Plugin):
         "attacker to learn the version of NGINX you are running, which can "
         "be used to exploit known vulnerabilities."
     )
-    help_url = "https://gixy.getpagespeed.com/en/plugins/version_disclosure/"
+    help_url = "https://gixy.getpagespeed.com/plugins/version_disclosure/"
     directives = ["server_tokens"]
     supports_full_config = True
 
@@ -24,10 +24,23 @@ class version_disclosure(Plugin):
                 severity=gixy.severity.HIGH,
                 directive=[directive, directive.parent],
                 reason="Using server_tokens value which promotes information disclosure",
+                fixes=[
+                    self.make_fix(
+                        title="Set server_tokens off",
+                        search=f"server_tokens {directive.args[0]}",
+                        replace="server_tokens off",
+                        description="Disable version disclosure in Server header",
+                    ),
+                ],
             )
 
     def post_audit(self, root):
-        """Check for missing server_tokens directive in full config mode"""
+        """Check for missing server_tokens directive in full config mode.
+
+        Only reports 'missing' if there's NO server_tokens directive anywhere
+        in the config. If server_tokens exists (even with 'on' value), the
+        audit() method already handles it.
+        """
         # Find http block
         http_block = None
         for child in root.children:
@@ -40,49 +53,34 @@ class version_disclosure(Plugin):
 
         # Check if server_tokens is set at http level
         http_server_tokens = http_block.some("server_tokens")
-        if http_server_tokens and http_server_tokens.args[0] == "off":
-            # server_tokens is properly set at http level, no need to check further
+
+        # If server_tokens is set at http level (any value), the audit() method
+        # handles bad values. Don't report "missing" at server level.
+        if http_server_tokens:
+            if http_server_tokens.args[0] == "off":
+                # Properly configured at http level, nothing more to check
+                return
+            # Bad value at http level - audit() handles this, don't double-report
+            # at server level
             return
 
-        # Check each server block for server_tokens
+        # No server_tokens at http level - check each server block
         for server_block in http_block.find_all_contexts_of_type("server"):
             server_tokens = server_block.some("server_tokens")
-            server_level_issue = False
 
             if not server_tokens:
-                # Missing server_tokens directive in this server block
+                # Truly missing - no directive at http or server level
                 self.add_issue(
                     severity=gixy.severity.HIGH,
                     directive=[server_block],
                     reason="Missing server_tokens directive - defaults to 'on' which promotes information disclosure",
+                    fixes=[
+                        self.make_fix(
+                            title="Add server_tokens off",
+                            search="server {",
+                            replace="server {\n    server_tokens off;",
+                            description="Add server_tokens off to disable version disclosure",
+                        ),
+                    ],
                 )
-                server_level_issue = True
-            elif server_tokens.args[0] in ["on", "build"]:
-                # This case is already handled by the regular audit method
-                server_level_issue = True
-
-            # Only check location blocks if server level is properly configured
-            if not server_level_issue:
-                for location_block in server_block.find_all_contexts_of_type(
-                    "location"
-                ):
-                    location_tokens = location_block.some("server_tokens")
-
-                    if not location_tokens:
-                        # Check if server_tokens is inherited from server or http level
-                        inherited_tokens = None
-                        if server_tokens:
-                            inherited_tokens = server_tokens
-                        elif http_server_tokens:
-                            inherited_tokens = http_server_tokens
-
-                        # Only report if there's no safe inherited value
-                        if not inherited_tokens or inherited_tokens.args[0] in [
-                            "on",
-                            "build",
-                        ]:
-                            self.add_issue(
-                                severity=gixy.severity.MEDIUM,  # Lower severity for location blocks
-                                directive=[location_block],
-                                reason="Missing server_tokens directive in location - inherits unsafe default",
-                            )
+            # If server_tokens exists at server level, audit() handles bad values

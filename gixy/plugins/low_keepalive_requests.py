@@ -13,7 +13,7 @@ class low_keepalive_requests(Plugin):
     summary = "The keepalive_requests directive should be at least 1000."
     severity = gixy.severity.LOW
     description = "The keepalive_requests directive should be at least 1000. Any value lower than this may result in client disconnections."
-    help_url = "https://gixy.getpagespeed.com/en/plugins/low_keepalive_requests/"
+    help_url = "https://gixy.getpagespeed.com/plugins/low_keepalive_requests/"
     directives = ["keepalive_requests"]
 
     def audit(self, directive):
@@ -28,4 +28,18 @@ class low_keepalive_requests(Plugin):
                 severity=self.severity,
                 directive=[directive],
                 reason="The keepalive_requests directive should be at least 1000.",
+                fixes=[
+                    self.make_fix(
+                        title="Set keepalive_requests to 1000",
+                        search=f"keepalive_requests {value}",
+                        replace="keepalive_requests 1000",
+                        description="Set to minimum recommended value",
+                    ),
+                    self.make_fix(
+                        title="Set keepalive_requests to 10000",
+                        search=f"keepalive_requests {value}",
+                        replace="keepalive_requests 10000",
+                        description="Higher value for high-traffic sites",
+                    ),
+                ],
             )

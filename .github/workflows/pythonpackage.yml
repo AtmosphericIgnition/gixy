@@ -3,6 +3,21 @@ name: Python tests
 on: [push, pull_request]
 
 jobs:
+  # Check plugin help_url values and documentation
+  plugin-checks:
+    name: Plugin validation checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check plugin help_url values
+        run: python scripts/check_plugin_help_urls.py
+      - name: Check plugin documentation
+        run: python scripts/check_plugin_docs.py
+
   legacy:
     name: Test on Python ${{ matrix.python-version }}
     runs-on: ubuntu-22.04
