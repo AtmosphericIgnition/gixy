@@ -5,9 +5,23 @@ on:
     types: [created]
   pull_request_review_comment:
     types: [created]
+  # Manual trigger to process existing comments
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue/PR number to scan for hostile comments'
+        required: true
+        type: number
+      dry_run:
+        description: 'Dry run - analyze but do not hide/rewrite'
+        required: false
+        type: boolean
+        default: true
 
 jobs:
+  # Job for automatic comment moderation (on new comments)
   diplomatize:
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     permissions:
@@ -43,7 +57,6 @@ jobs:
             console.log(`Checking comment from ${commentAuthor}`);
 
             // Step 0: Check for acronyms/patterns OpenAI doesn't recognize
-            const commentLower = originalComment.toLowerCase();
             const knownBadPatterns = [
               { pattern: /\bgfy\b/i, reason: 'profanity acronym' },
               { pattern: /\bstfu\b/i, reason: 'profanity acronym' },
@@ -183,3 +196,203 @@ jobs:
             });
 
             console.log('Done - comment hidden and diplomatic version posted');
+
+  # Job for manual scanning of existing comments
+  scan-existing:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+      pull-requests: write
+      models: read
+
+    steps:
+      - name: Scan and moderate existing comments
+        uses: actions/github-script@v7
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const issueNumber = ${{ inputs.issue_number }};
+            const dryRun = process.env.DRY_RUN === 'true';
+
+            console.log(`\n${'='.repeat(60)}`);
+            console.log(`Scanning issue/PR #${issueNumber} for hostile comments`);
+            console.log(`Mode: ${dryRun ? '🔍 DRY RUN (analyze only)' : '⚡ LIVE (will hide and rewrite)'}`);
+            console.log(`${'='.repeat(60)}\n`);
+
+            // Maintainers to skip
+            const maintainers = ['dvershinin'];
+
+            // Bad patterns OpenAI misses
+            const knownBadPatterns = [
+              { pattern: /\bgfy\b/i, reason: 'profanity acronym' },
+              { pattern: /\bstfu\b/i, reason: 'profanity acronym' },
+              { pattern: /\bgtfo\b/i, reason: 'profanity acronym' },
+              { pattern: /\bai slop\b/i, reason: 'dismissive language' },
+            ];
+
+            // Get all comments on the issue
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              per_page: 100
+            });
+
+            console.log(`Found ${comments.data.length} comments to analyze\n`);
+
+            let flaggedCount = 0;
+            let processedCount = 0;
+
+            for (const comment of comments.data) {
+              const author = comment.user.login;
+              const nodeId = comment.node_id;
+              const body = comment.body;
+              const commentId = comment.id;
+
+              // Skip bots and maintainers
+              if (comment.user.type === 'Bot') continue;
+              if (maintainers.includes(author)) continue;
+
+              processedCount++;
+
+              // Check patterns
+              let patternMatch = null;
+              for (const { pattern, reason } of knownBadPatterns) {
+                if (pattern.test(body)) {
+                  patternMatch = reason;
+                  break;
+                }
+              }
+
+              // Call OpenAI moderation
+              const moderationResponse = await fetch('https://api.openai.com/v1/moderations', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ input: body })
+              });
+
+              if (!moderationResponse.ok) {
+                console.log(`[${commentId}] Moderation API error: ${moderationResponse.status}`);
+                continue;
+              }
+
+              const moderationData = await moderationResponse.json();
+              const result = moderationData.results[0];
+              const harassmentScore = result.category_scores.harassment || 0;
+              const hateScore = result.category_scores.hate || 0;
+
+              const isFlagged = result.flagged || harassmentScore > 0.3 || hateScore > 0.3 || patternMatch;
+
+              const preview = body.substring(0, 60).replace(/\n/g, ' ') + (body.length > 60 ? '...' : '');
+
+              if (!isFlagged) {
+                console.log(`✅ [${author}] PASS (h=${harassmentScore.toFixed(2)})`);
+                console.log(`   "${preview}"\n`);
+                continue;
+              }
+
+              flaggedCount++;
+
+              let reason;
+              if (patternMatch) {
+                reason = patternMatch;
+              } else if (result.flagged) {
+                reason = Object.entries(result.categories).filter(([_, v]) => v).map(([k]) => k).join(', ');
+              } else {
+                reason = `harassment: ${harassmentScore.toFixed(2)}, hate: ${hateScore.toFixed(2)}`;
+              }
+
+              console.log(`🚨 [${author}] FLAGGED - ${reason}`);
+              console.log(`   "${preview}"`);
+              console.log(`   URL: ${comment.html_url}`);
+
+              if (dryRun) {
+                console.log(`   [DRY RUN] Would hide and rewrite this comment\n`);
+                continue;
+              }
+
+              // LIVE MODE: Rewrite and hide
+              console.log(`   Rewriting...`);
+
+              const rewriteResponse = await fetch('https://models.github.ai/inference/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${{ secrets.GITHUB_TOKEN }}`,
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                  model: 'openai/gpt-4o-mini',
+                  messages: [
+                    {
+                      role: 'system',
+                      content: `Rewrite this comment to be professional and constructive.
+                      Rules:
+                      - PRESERVE all technical content, bug reports, criticisms, and valid points
+                      - REMOVE profanity, insults, personal attacks, and hostile language
+                      - Keep the same meaning and structure
+                      - Do NOT add emojis or excessive pleasantries
+                      - Output ONLY the rewritten comment, nothing else`
+                    },
+                    { role: 'user', content: body }
+                  ],
+                  temperature: 0.2,
+                  max_tokens: 2000
+                })
+              });
+
+              if (!rewriteResponse.ok) {
+                console.log(`   GitHub Models error: ${rewriteResponse.status}\n`);
+                continue;
+              }
+
+              const rewriteData = await rewriteResponse.json();
+              const rewritten = rewriteData.choices[0].message.content.trim();
+
+              // Hide the comment
+              console.log(`   Hiding original...`);
+              await github.graphql(`
+                mutation($id: ID!, $classifier: ReportedContentClassifiers!) {
+                  minimizeComment(input: {subjectId: $id, classifier: $classifier}) {
+                    minimizedComment { isMinimized }
+                  }
+                }
+              `, { id: nodeId, classifier: 'ABUSE' });
+
+              // Post diplomatic version
+              console.log(`   Posting diplomatic version...`);
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issueNumber,
+                body: `**Comment from @${author}** *(reformatted for constructive discussion)*:
+
+            ---
+
+            ${rewritten}
+
+            ---
+
+            <sub>🤖 Original hidden due to: ${reason}. Technical content preserved.
+            [Community guidelines](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/master/CODE_OF_CONDUCT.md)</sub>`
+              });
+
+              console.log(`   ✅ Done!\n`);
+            }
+
+            console.log(`\n${'='.repeat(60)}`);
+            console.log(`SUMMARY`);
+            console.log(`${'='.repeat(60)}`);
+            console.log(`Comments analyzed: ${processedCount}`);
+            console.log(`Comments flagged: ${flaggedCount}`);
+            if (dryRun && flaggedCount > 0) {
+              console.log(`\n⚠️  Re-run with dry_run=false to actually hide and rewrite these comments`);
+            }
