@@ -222,6 +222,15 @@ Total issues:
 
 ```
 
+## VS Code / Cursor Extension
+
+Get real-time NGINX security analysis directly in your editor:
+
+```bash
+code --install-extension getpagespeed.gixy
+```
+
+Or search "Gixy" in the Extensions panel. See [vscode-gixy](https://github.com/dvershinin/vscode-gixy) for details.
 
 # Contributing
 Contributions to Gixy are always welcome! You can help us in different ways:
