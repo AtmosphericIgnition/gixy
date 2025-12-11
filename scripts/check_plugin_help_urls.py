@@ -12,8 +12,6 @@ Exit codes:
     1 - One or more plugins have invalid or missing help_url
 """
 
-from __future__ import annotations
-
 import ast
 import sys
 from pathlib import Path
