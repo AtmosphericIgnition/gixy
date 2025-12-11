@@ -18,6 +18,25 @@ jobs:
       - name: Check plugin documentation
         run: python scripts/check_plugin_docs.py
 
+  # Verify scripts work on Python 3.6 (minimum supported version)
+  py36-compat:
+    name: Python 3.6 compatibility check
+    runs-on: ubuntu-22.04
+    container:
+      image: python:3.6-slim
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install flake8
+        run: pip install flake8
+      - name: Check for Python 3.6 syntax compatibility
+        run: |
+          # Check for syntax errors and undefined names (F821)
+          flake8 scripts/ gixy/ --count --select=E9,F63,F7,F82,F821 --show-source --statistics
+      - name: Verify scripts run on Python 3.6
+        run: |
+          python scripts/check_plugin_help_urls.py
+          python scripts/check_plugin_docs.py
+
   legacy:
     name: Test on Python ${{ matrix.python-version }}
     runs-on: ubuntu-22.04
