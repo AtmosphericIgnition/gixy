@@ -113,7 +113,7 @@ def test_cli_module_invocation_via_python_m():
         [sys.executable, "-m", "gixy.cli.main", "--help"],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        text=True,  # Python 3.6 compatible (text=True requires 3.7+)
+        text=True,  # text=True requires Python 3.7+
     )
 
     assert completed.returncode == 0
