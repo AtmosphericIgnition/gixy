@@ -49,6 +49,8 @@ Right now Gixy can find:
 *   [[unanchored_regex] Regular expression without anchors](https://gixy.getpagespeed.com/en/plugins/unanchored_regex/)
 *   [[regex_redos] Regular expressions may result in easy denial-of-service (ReDoS) attacks](https://gixy.getpagespeed.com/en/plugins/regex_redos/)
 *   [[invalid_regex] Using a nonexistent regex capture group](https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/invalid_regex.md)
+*   [[low_keepalive_requests] Low `keepalive_requests` value can cause performance issues](https://gixy.getpagespeed.com/en/plugins/low_keepalive_requests/)
+*   [[missing_resolver] Missing `resolver` directive for dynamic upstreams](https://gixy.getpagespeed.com/en/plugins/missing_resolver/)
 
 You can find things that Gixy is learning to detect at [Issues labeled with "new plugin"](https://github.com/dvershinin/gixy/issues?q=is%3Aissue+is%3Aopen+label%3A%22new+plugin%22)
 
