@@ -42,6 +42,23 @@ jobs:
 
             console.log(`Checking comment from ${commentAuthor}`);
 
+            // Step 0: Check for acronyms/patterns OpenAI doesn't recognize
+            const commentLower = originalComment.toLowerCase();
+            const knownBadPatterns = [
+              { pattern: /\bgfy\b/i, reason: 'profanity acronym' },
+              { pattern: /\bstfu\b/i, reason: 'profanity acronym' },
+              { pattern: /\bgtfo\b/i, reason: 'profanity acronym' },
+              { pattern: /\bai slop\b/i, reason: 'dismissive language' },
+            ];
+
+            let patternMatch = null;
+            for (const { pattern, reason } of knownBadPatterns) {
+              if (pattern.test(originalComment)) {
+                patternMatch = reason;
+                break;
+              }
+            }
+
             // Step 1: Use OpenAI's FREE moderation endpoint to check for violations
             const moderationResponse = await fetch('https://api.openai.com/v1/moderations', {
               method: 'POST',
@@ -71,7 +88,7 @@ jobs:
             const harassmentScore = result.category_scores.harassment || 0;
             const hateScore = result.category_scores.hate || 0;
 
-            const isFlagged = result.flagged || harassmentScore > 0.3 || hateScore > 0.3;
+            const isFlagged = result.flagged || harassmentScore > 0.3 || hateScore > 0.3 || patternMatch;
 
             if (!isFlagged) {
               console.log('Comment passed moderation - no action needed');
@@ -79,9 +96,14 @@ jobs:
               return;
             }
 
-            const reason = flaggedCategories.length > 0
-              ? flaggedCategories.join(', ')
-              : `high toxicity score (harassment: ${harassmentScore.toFixed(2)}, hate: ${hateScore.toFixed(2)})`;
+            let reason;
+            if (patternMatch) {
+              reason = patternMatch;
+            } else if (flaggedCategories.length > 0) {
+              reason = flaggedCategories.join(', ');
+            } else {
+              reason = `high toxicity score (harassment: ${harassmentScore.toFixed(2)}, hate: ${hateScore.toFixed(2)})`;
+            }
 
             console.log(`Comment flagged: ${reason}`);
 
