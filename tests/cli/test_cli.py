@@ -15,8 +15,8 @@ def test_cli_help(monkeypatch, capsys):
     """
     Test that running the CLI with --help displays usage information.
     """
-    # Set sys.argv to simulate "pixy --help"
-    monkeypatch.setattr(sys, "argv", ["pixy", "--help"])
+    # Set sys.argv to simulate "gixy --help"
+    monkeypatch.setattr(sys, "argv", ["gixy", "--help"])
 
     # If the CLI prints help and then exits, SystemExit is expected.
     with pytest.raises(SystemExit) as e:
@@ -125,14 +125,10 @@ def test_cli_bool_plugin_options_true_and_false():
     """
     parser = _get_cli_parser()
 
-    args_true = parser.parse_args(
-        ["--origins-https-only", "true", "nginx.conf"]
-    )
+    args_true = parser.parse_args(["--origins-https-only", "true", "nginx.conf"])
     assert getattr(args_true, "origins:https_only") is True
 
-    args_false = parser.parse_args(
-        ["--origins-https-only", "false", "nginx.conf"]
-    )
+    args_false = parser.parse_args(["--origins-https-only", "false", "nginx.conf"])
     assert getattr(args_false, "origins:https_only") is False
 
 
@@ -142,14 +138,10 @@ def test_cli_bool_plugin_options_alt_synonyms():
     """
     parser = _get_cli_parser()
 
-    args_yes = parser.parse_args(
-        ["--origins-https-only", "yes", "nginx.conf"]
-    )
+    args_yes = parser.parse_args(["--origins-https-only", "yes", "nginx.conf"])
     assert getattr(args_yes, "origins:https_only") is True
 
-    args_zero = parser.parse_args(
-        ["--origins-https-only", "0", "nginx.conf"]
-    )
+    args_zero = parser.parse_args(["--origins-https-only", "0", "nginx.conf"])
     assert getattr(args_zero, "origins:https_only") is False
 
 
@@ -160,8 +152,6 @@ def test_cli_bool_plugin_options_reject_invalid():
     parser = _get_cli_parser()
 
     with pytest.raises(SystemExit) as excinfo:
-        parser.parse_args(
-            ["--origins-https-only", "maybe", "nginx.conf"]
-        )
+        parser.parse_args(["--origins-https-only", "maybe", "nginx.conf"])
 
     assert excinfo.value.code != 0
