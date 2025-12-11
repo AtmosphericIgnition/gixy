@@ -8,17 +8,22 @@ class JsonFormatter(BaseFormatter):
         result = []
         for path, issues in reports.items():
             for issue in issues:
-                result.append(
-                    {
-                        "path": path,
-                        "plugin": issue["plugin"],
-                        "summary": issue["summary"],
-                        "severity": issue["severity"],
-                        "description": issue["description"],
-                        "reference": issue["help_url"],
-                        "reason": issue["reason"],
-                        "config": issue["config"],
-                    }
-                )
+                entry = {
+                    "path": path,
+                    "plugin": issue["plugin"],
+                    "summary": issue["summary"],
+                    "severity": issue["severity"],
+                    "description": issue["description"],
+                    "reference": issue["help_url"],
+                    "reason": issue["reason"],
+                    "config": issue["config"],
+                }
+                # Include location (line number) if available
+                location = issue.get("location")
+                if location:
+                    entry["line"] = location.get("line")
+                    if location.get("file"):
+                        entry["file"] = location["file"]
+                result.append(entry)
 
         return json.dumps(result, sort_keys=True, indent=2, separators=(",", ": "))
