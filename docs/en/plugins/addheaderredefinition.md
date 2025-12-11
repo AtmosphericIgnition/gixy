@@ -56,7 +56,50 @@ Pragma: no-cache
 new-headers
 ```
 
+## Severity Classification
+
+This plugin uses **intelligent value-aware severity classification** to minimize false positives while catching real security issues.
+
+### MEDIUM Severity (Security-Critical)
+
+Triggered when dropping headers that provide **actual security protection**:
+
+#### Always-Secure Headers
+These headers are security-critical regardless of their value:
+
+| Header | Purpose |
+|--------|---------|
+| `Content-Security-Policy` | Prevents XSS, code injection |
+| `Strict-Transport-Security` | Forces HTTPS |
+| `X-Frame-Options` | Prevents clickjacking |
+| `X-Content-Type-Options` | Prevents MIME sniffing |
+| `Referrer-Policy` | Controls referrer leakage |
+| `Permissions-Policy` | Restricts browser features |
+| `Cross-Origin-*` | Cross-origin isolation |
+
+#### Value-Aware Headers
+For some headers, the **value determines security intent**:
+
+| Header | Security-Protective Values | Non-Security Values |
+|--------|---------------------------|---------------------|
+| `Cache-Control` | `no-store`, `no-cache`, `private`, `must-revalidate` | `public`, `max-age=N` |
+| `Pragma` | `no-cache` | Other values |
+| `Expires` | `0`, `-1`, `1970` dates | Future dates |
+| `Content-Disposition` | `attachment` | `inline` |
+| `X-Download-Options` | `noopen` | Other values |
+
+**Example:** Dropping `Cache-Control: no-store` is MEDIUM severity (security regression), but dropping `Cache-Control: public, max-age=3600` is LOW severity (just a caching optimization change).
+
+### LOW Severity (Non-Security)
+
+Triggered when dropping headers that are not security-protective, such as:
+
+- Custom headers (`X-Custom-Header`)
+- Performance headers (`Cache-Control: public`)
+- Informational headers
+
 ## What can I do?
+
 There are several ways to solve this problem:
 
 ### 1. Use `add_header_inherit` (nginx 1.29.3+)
@@ -67,7 +110,7 @@ Starting with nginx 1.29.3, you can use the `add_header_inherit` directive to in
 server {
     listen 80;
     add_header X-Frame-Options "DENY" always;
-    
+
     location /new-headers {
         add_header_inherit on;  # Inherit X-Frame-Options from server
         add_header Cache-Control "no-cache" always;
@@ -100,7 +143,7 @@ Use [ngx_headers_more](https://nginx-extras.getpagespeed.com/modules/headers-mor
 
 --8<-- "en/snippets/nginx-extras-cta.md"
 
-### CLI and config options
+## CLI and config options
 
 - `--add-header-redefinition-headers headers` (Default: unset): Comma-separated, case-insensitive allowlist of headers to report when dropped. When unset, all dropped parent headers are reported. Example: `--add-header-redefinition-headers x-frame-options,content-security-policy`.
 
@@ -109,3 +152,21 @@ Config file example:
 [add_header_redefinition]
 headers = x-frame-options, content-security-policy
 ```
+
+## Technical Details
+
+### How Value-Aware Classification Works
+
+Instead of blindly classifying headers as "secure" or "not secure", the plugin analyzes the **actual header value** to determine security intent:
+
+```
+Parent: add_header Cache-Control "no-store";
+Child:  add_header X-Custom "value";
+Result: MEDIUM severity (Cache-Control: no-store is security-protective)
+
+Parent: add_header Cache-Control "public, max-age=3600";
+Child:  add_header Cache-Control "no-store";
+Result: No issue (child overrides with stricter policy)
+```
+
+This approach eliminates false positives for performance-only headers while still catching real security regressions.

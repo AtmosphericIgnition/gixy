@@ -85,7 +85,7 @@ def test_cli_main_runs_with_plugin_options(monkeypatch):
             "gixy",
             "--origins-domains",
             "example.com,foo.bar",
-            "nginx.conf",
+            "tests/integration/wordpress_production.conf",
         ],
     )
 
