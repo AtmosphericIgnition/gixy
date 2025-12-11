@@ -20,6 +20,7 @@ ignore = [
     "F403",   # undefined-local-with-import-star (sre_parse uses star imports)
     "F405",   # undefined-local-with-import-star-usage
     "UP008",  # super-call-with-parameters (legacy Python 2 style)
+    "UP021",  # universal-newlines -> text (text requires Python 3.7+, we support 3.6)
     "UP030",  # format-literals (legacy .format() style)
     "UP031",  # printf-string-formatting (legacy % style)
     "SIM102", # collapsible-if (sometimes clearer as-is)
