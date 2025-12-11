@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.20] - 2024-12-12
+
+### Fixed
+- Python 3.6 compatibility: Removed type comments that referenced undefined names (`List`, `Tuple`, `Optional`).
+
+### Added
+- Pre-commit configuration with Python 3.6 syntax checking using pyenv.
+- CI job `py36-compat` to verify scripts work on Python 3.6 minimum version.
+
 ## [0.2.19] - 2024-12-12
 
 ### Added
