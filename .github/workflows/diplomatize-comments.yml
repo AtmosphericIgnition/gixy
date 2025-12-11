@@ -9,20 +9,6 @@ on:
 jobs:
   diplomatize:
     runs-on: ubuntu-latest
-    # Only run if comment contains potential hostility indicators
-    if: |
-      contains(github.event.comment.body, 'garbage') ||
-      contains(github.event.comment.body, 'trash') ||
-      contains(github.event.comment.body, 'stupid') ||
-      contains(github.event.comment.body, 'retarded') ||
-      contains(github.event.comment.body, 'idiot') ||
-      contains(github.event.comment.body, 'wtf') ||
-      contains(github.event.comment.body, 'GFY') ||
-      contains(github.event.comment.body, 'crap') ||
-      contains(github.event.comment.body, 'sucks') ||
-      contains(github.event.comment.body, 'terrible') ||
-      contains(github.event.comment.body, 'awful') ||
-      contains(github.event.comment.body, 'horrible')
 
     permissions:
       issues: write
@@ -30,14 +16,14 @@ jobs:
       models: read
 
     steps:
-      - name: Diplomatize hostile comment
+      - name: Diplomatize and hide hostile comments
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const originalComment = context.payload.comment.body;
             const commentAuthor = context.payload.comment.user.login;
-            const commentId = context.payload.comment.id;
+            const commentNodeId = context.payload.comment.node_id;
 
             // Don't process bot comments
             if (context.payload.comment.user.type === 'Bot') {
@@ -45,9 +31,16 @@ jobs:
               return;
             }
 
+            // Don't process maintainer comments (add your username here)
+            const maintainers = ['dvershinin'];
+            if (maintainers.includes(commentAuthor)) {
+              console.log(`Skipping maintainer comment from ${commentAuthor}`);
+              return;
+            }
+
             console.log(`Processing comment from ${commentAuthor}`);
 
-            // Call GitHub Models API to diplomatize
+            // Call GitHub Models API to analyze and diplomatize
             const response = await fetch('https://models.github.ai/inference/chat/completions', {
               method: 'POST',
               headers: {
@@ -60,29 +53,40 @@ jobs:
                 messages: [
                   {
                     role: 'system',
-                    content: `You are a diplomatic translator for open source project discussions.
+                    content: `You are a content moderator for an open source project.
 
-            Your task: Rewrite the following comment to be professional and constructive while preserving ALL technical points, criticisms, and feedback.
+            TASK: Analyze the comment and determine if it needs moderation. Then provide a professional rewrite.
 
-            Rules:
-            1. PRESERVE all technical content, bug reports, feature requests, and valid criticisms
-            2. REMOVE profanity, insults, personal attacks, and hostile tone
-            3. Keep the same structure and meaning
-            4. Do NOT add emojis
-            5. Do NOT be sycophantic or add unnecessary pleasantries
-            6. If the comment is already professional, return it unchanged
-            7. Return ONLY the rewritten comment, no explanations
+            RESPOND IN THIS EXACT JSON FORMAT:
+            {
+              "needs_moderation": true/false,
+              "reason": "brief reason if moderation needed",
+              "rewritten": "the professional version of the comment"
+            }
 
-            Example:
-            Input: "This code is garbage. The function doesn't handle null values and crashes."
-            Output: "There appears to be an issue with this code. The function doesn't handle null values and crashes."`
+            MODERATION CRITERIA - set needs_moderation to TRUE if ANY of these apply:
+            - Profanity or vulgar language
+            - Personal attacks or insults (toward anyone, including AI/bots)
+            - Condescending or dismissive tone
+            - Aggressive or hostile language
+            - Sarcasm intended to belittle
+            - "AI slop", "garbage", "trash", "stupid", "idiot", "retarded", "brain-dead", etc.
+
+            REWRITING RULES:
+            - PRESERVE all technical content, bug reports, criticisms, and valid points
+            - REMOVE hostility, insults, and unprofessional language
+            - Keep the same meaning and structure
+            - Do NOT add emojis or excessive pleasantries
+            - If comment is already professional, return it unchanged in "rewritten"
+
+            IMPORTANT: Output ONLY valid JSON, nothing else.`
                   },
                   {
                     role: 'user',
                     content: originalComment
                   }
                 ],
-                temperature: 0.3,
+                temperature: 0.1,
                 max_tokens: 2000
               })
             });
@@ -94,46 +98,56 @@ jobs:
             }
 
             const data = await response.json();
-            const diplomaticVersion = data.choices[0].message.content.trim();
-
-            // Check if the comment was actually changed
-            if (diplomaticVersion === originalComment) {
-              console.log('Comment unchanged - no hostility detected by AI');
+            let result;
+            try {
+              result = JSON.parse(data.choices[0].message.content.trim());
+            } catch (e) {
+              console.log('Failed to parse AI response:', data.choices[0].message.content);
               return;
             }
 
-            // Check if changes are significant (more than just whitespace)
-            const normalize = (s) => s.toLowerCase().replace(/\s+/g, ' ').trim();
-            if (normalize(diplomaticVersion) === normalize(originalComment)) {
-              console.log('Only whitespace changes - skipping');
+            console.log('Moderation result:', result);
+
+            if (!result.needs_moderation) {
+              console.log('Comment is professional - no action needed');
               return;
             }
 
-            console.log('Posting diplomatic version');
+            console.log(`Hiding comment: ${result.reason}`);
 
-            // Determine if this is an issue comment or PR review comment
+            // Hide the original comment using GraphQL
+            await github.graphql(`
+              mutation($id: ID!, $classifier: ReportedContentClassifiers!) {
+                minimizeComment(input: {subjectId: $id, classifier: $classifier}) {
+                  minimizedComment {
+                    isMinimized
+                  }
+                }
+              }
+            `, {
+              id: commentNodeId,
+              classifier: 'ABUSE'
+            });
+
+            console.log('Original comment hidden');
+
+            // Post the diplomatic version
             const issueNumber = context.payload.issue?.number || context.payload.pull_request?.number;
 
-            // Post the diplomatic version as a reply
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: issueNumber,
-              body: `<details>
-            <summary>🤖 <strong>Constructive Feedback Translation</strong></summary>
-
-            *The comment above contained language that may be difficult to engage with constructively. Here's the same feedback in a more professional tone:*
+              body: `**Comment from @${commentAuthor}** *(reformatted for constructive discussion)*:
 
             ---
 
-            ${diplomaticVersion}
+            ${result.rewritten}
 
             ---
 
-            <sub>This translation preserves the technical content while removing hostile language.
-            [Why this bot exists](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/master/CODE_OF_CONDUCT.md)</sub>
-
-            </details>`
+            <sub>🤖 The original comment was hidden due to: ${result.reason}. Technical content preserved above.
+            [Community guidelines](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/master/CODE_OF_CONDUCT.md)</sub>`
             });
 
             console.log('Diplomatic version posted successfully');
