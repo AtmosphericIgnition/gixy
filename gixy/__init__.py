@@ -2,4 +2,4 @@
 
 from gixy.core import severity
 
-version = "0.2.20"
+version = "0.2.21"

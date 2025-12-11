@@ -65,9 +65,14 @@ def get_plugin_classes(file_path):
             if isinstance(item, ast.Assign):
                 for target in item.targets:
                     if isinstance(target, ast.Name) and target.id == "help_url":
-                        # Get the value
-                        if isinstance(item.value, ast.Constant):
+                        # Get the value - support both Python 3.6 (ast.Str) and 3.8+ (ast.Constant)
+                        if hasattr(ast, "Constant") and isinstance(
+                            item.value, ast.Constant
+                        ):
                             help_url = item.value.value
+                        elif hasattr(ast, "Str") and isinstance(item.value, ast.Str):
+                            # Python 3.6/3.7 uses ast.Str for string literals
+                            help_url = item.value.s
                         elif isinstance(item.value, ast.JoinedStr):
                             # f-string - try to extract literal parts
                             help_url = "<f-string>"
