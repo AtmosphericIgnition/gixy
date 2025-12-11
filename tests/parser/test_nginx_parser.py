@@ -1,7 +1,8 @@
 import pytest
-from gixy.parser.nginx_parser import NginxParser
-from gixy.directives.directive import *
+
 from gixy.directives.block import *
+from gixy.directives.directive import *
+from gixy.parser.nginx_parser import NginxParser
 
 
 def _parse(config):
@@ -13,50 +14,50 @@ def _parse_via_compat_parse(config):
     return NginxParser(cwd="", allow_includes=False).parse(config)
 
 
-@pytest.mark.parametrize('config,expected', zip(
-    [
-        'access_log syslog:server=127.0.0.1,tag=nginx_sentry toolsformat;',
-        'user http;',
-        'internal;',
-        'set $foo "bar";',
-        "set $foo 'bar';",
-        'proxy_pass http://unix:/run/sock.socket;',
-        'rewrite ^/([a-zA-Z0-9]+)$ /$1/${arg_v}.pb break;'
-    ],
-
-    [
-        [Directive],
-        [Directive],
-        [Directive],
-        [Directive, SetDirective],
-        [Directive, SetDirective],
-        [Directive],
-        [Directive, RewriteDirective]
-    ]
-))
+@pytest.mark.parametrize(
+    "config,expected",
+    zip(
+        [
+            "access_log syslog:server=127.0.0.1,tag=nginx_sentry toolsformat;",
+            "user http;",
+            "internal;",
+            'set $foo "bar";',
+            "set $foo 'bar';",
+            "proxy_pass http://unix:/run/sock.socket;",
+            "rewrite ^/([a-zA-Z0-9]+)$ /$1/${arg_v}.pb break;",
+        ],
+        [
+            [Directive],
+            [Directive],
+            [Directive],
+            [Directive, SetDirective],
+            [Directive, SetDirective],
+            [Directive],
+            [Directive, RewriteDirective],
+        ],
+    ),
+)
 def test_directive(config, expected):
     assert_config(config, expected)
 
 
-@pytest.mark.parametrize('config,expected', zip(
-    [
-        'if (-f /some) {}',
-        'map $uri $avar {}',
-        'location / {}'
-    ],
-
-    [
-        [Directive, Block, IfBlock],
-        [Directive, Block, MapBlock],
-        [Directive, Block, LocationBlock],
-    ]
-))
+@pytest.mark.parametrize(
+    "config,expected",
+    zip(
+        ["if (-f /some) {}", "map $uri $avar {}", "location / {}"],
+        [
+            [Directive, Block, IfBlock],
+            [Directive, Block, MapBlock],
+            [Directive, Block, LocationBlock],
+        ],
+    ),
+)
 def test_blocks(config, expected):
     assert_config(config, expected)
 
 
 def test_dump_simple():
-    config = '''
+    config = """
 # configuration file /etc/nginx/nginx.conf:
 http {
     include sites/*.conf;
@@ -69,7 +70,7 @@ listen 80;
 server {
     include conf.d/listen;
 }
-    '''
+    """
 
     tree = _parse(config)
     assert isinstance(tree, Directive)
@@ -93,20 +94,18 @@ server {
     assert len(server.children) == 1
     listen = server.children[0]
     assert isinstance(listen, Directive)
-    assert listen.args == ['80']
+    assert listen.args == ["80"]
 
 
 def test_encoding():
-    configs = [
-        'bar "\xD1\x82\xD0\xB5\xD1\x81\xD1\x82";'
-    ]
+    configs = ['bar "\xd1\x82\xd0\xb5\xd1\x81\xd1\x82";']
 
     for i, config in enumerate(configs):
         _parse(config)
 
 
 def test_dump_nested_include_resolves_relative_to_root():
-    config = '''
+    config = """
 # configuration file /etc/nginx/nginx.conf:
 http {
     include sites/a.conf;
@@ -119,7 +118,7 @@ server {
 
 # configuration file /etc/nginx/snippets/shared:
 add_header X-Test 1;
-    '''
+    """
 
     tree = _parse(config)
     assert isinstance(tree, Directive)
@@ -143,12 +142,12 @@ add_header X-Test 1;
     assert len(server.children) == 1
     add_header = server.children[0]
     assert isinstance(add_header, Directive)
-    assert add_header.name == 'add_header'
-    assert add_header.args == ['X-Test', '1']
+    assert add_header.name == "add_header"
+    assert add_header.args == ["X-Test", "1"]
 
 
 def test_dump_sibling_includes_resolve_from_prefix():
-    config = '''
+    config = """
 # configuration file /etc/nginx/nginx.conf:
 http {
     include sites/default.conf;
@@ -165,7 +164,7 @@ listen 80;
 
 # configuration file /etc/nginx/conf.d/add_header:
 add_header X-Foo bar;
-    '''
+    """
 
     tree = _parse(config)
     http = tree.children[0]
@@ -173,14 +172,17 @@ add_header X-Foo bar;
 
     assert len(server.children) == 2
     names = [c.name for c in server.children]
-    assert 'listen' in names
-    assert 'add_header' in names
+    assert "listen" in names
+    assert "add_header" in names
 
 
-@pytest.mark.parametrize("config", [
-    'user http;',
-    'location / {}',
-])
+@pytest.mark.parametrize(
+    "config",
+    [
+        "user http;",
+        "location / {}",
+    ],
+)
 def test_parse_alias_matches_parse_string_for_simple_configs(config):
     tree_direct = _parse(config)
     tree_compat = _parse_via_compat_parse(config)
@@ -193,7 +195,7 @@ def test_parse_alias_matches_parse_string_for_simple_configs(config):
 
 
 def test_parse_alias_handles_dump_same_as_parse_string():
-    config = '''
+    config = """
 # configuration file /etc/nginx/nginx.conf:
 http {
     include sites/*.conf;
@@ -206,7 +208,7 @@ listen 80;
 server {
     include conf.d/listen;
 }
-    '''
+    """
 
     tree_direct = _parse(config)
     tree_compat = _parse_via_compat_parse(config)
@@ -217,6 +219,7 @@ server {
     assert len(tree_direct.children) == len(tree_compat.children) == 1
     assert isinstance(tree_direct.children[0], HttpBlock)
     assert isinstance(tree_compat.children[0], HttpBlock)
+
 
 def assert_config(config, expected):
     tree = _parse(config)

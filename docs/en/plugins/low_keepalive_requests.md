@@ -32,4 +32,3 @@ Or simply omit the directive to use nginx's default (1000 since nginx 1.19.10).
 - [nginx ticket #2155: Increase default keepalive_requests](https://trac.nginx.org/nginx/ticket/2155)
 
 --8<-- "en/snippets/nginx-extras-cta.md"
-

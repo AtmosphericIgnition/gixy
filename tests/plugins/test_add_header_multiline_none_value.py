@@ -16,17 +16,18 @@ However, gixy may encounter None values from:
 The fix is defensive - gixy should handle gracefully instead of crashing.
 """
 
-import pytest
 from unittest.mock import MagicMock
 
-from gixy.plugins.add_header_multiline import add_header_multiline
+import pytest
+
 from gixy.directives.directive import AddHeaderDirective, MoreSetHeadersDirective
+from gixy.plugins.add_header_multiline import add_header_multiline
 
 
 class TestAddHeaderMultilineNoneValue:
     """
     Test that add_header_multiline plugin handles None values gracefully.
-    
+
     This is defensive programming - even though NGINX syntax requires values,
     gixy shouldn't crash when encountering malformed configs or parser edge cases.
     """
@@ -34,24 +35,24 @@ class TestAddHeaderMultilineNoneValue:
     def test_add_header_with_none_value_does_not_crash(self):
         """
         Regression test for GitHub issue #35.
-        
+
         When a header value is None (from malformed config or parser edge case),
         the plugin should skip gracefully instead of crashing with:
         TypeError: argument of type 'NoneType' is not iterable
         """
         # Create plugin instance with minimal config
         plugin = add_header_multiline(config=MagicMock())
-        
+
         # Create a mock directive with None value in headers
         directive = MagicMock(spec=AddHeaderDirective)
         directive.name = "add_header"
         directive.headers = {"X-Test-Header": None}
-        
+
         # This should NOT raise TypeError
         # Before fix: TypeError: argument of type 'NoneType' is not iterable
         # After fix: silently skips None values
         plugin.audit(directive)
-        
+
         # No issue should be added for None values
         assert not plugin.issues
 
@@ -60,12 +61,12 @@ class TestAddHeaderMultilineNoneValue:
         Test that more_set_headers directive with None value doesn't crash.
         """
         plugin = add_header_multiline(config=MagicMock())
-        
+
         # Create a mock directive with None value
         directive = MagicMock(spec=MoreSetHeadersDirective)
         directive.name = "more_set_headers"
         directive.headers = {"X-Custom": None, "Y-Valid": "value"}
-        
+
         # Should not raise TypeError
         plugin.audit(directive)
 
@@ -74,7 +75,7 @@ class TestAddHeaderMultilineNoneValue:
         Test that plugin processes valid values while skipping None.
         """
         plugin = add_header_multiline(config=MagicMock())
-        
+
         directive = MagicMock(spec=AddHeaderDirective)
         directive.name = "add_header"
         # Mix of None, empty string, and multiline value
@@ -83,10 +84,10 @@ class TestAddHeaderMultilineNoneValue:
             "X-Empty": "",
             "X-Multiline": "line1\n line2",  # This has \n followed by space - should trigger issue
         }
-        
+
         # Should not crash and should detect the multiline header
         plugin.audit(directive)
-        
+
         # Should have found the multiline issue
         assert len(plugin.issues) == 1
 
@@ -95,7 +96,7 @@ class TestAddHeaderMultilineNoneValue:
         Test directive where all header values are None.
         """
         plugin = add_header_multiline(config=MagicMock())
-        
+
         directive = MagicMock(spec=AddHeaderDirective)
         directive.name = "add_header"
         directive.headers = {
@@ -103,10 +104,10 @@ class TestAddHeaderMultilineNoneValue:
             "X-Second": None,
             "X-Third": None,
         }
-        
+
         # Should not crash
         plugin.audit(directive)
-        
+
         # No issues for None values
         assert not plugin.issues
 
@@ -114,7 +115,7 @@ class TestAddHeaderMultilineNoneValue:
 class TestAddHeaderMultilineNoneValueFailsWithoutFix:
     """
     These tests document the root cause of issue #35 and verify the fix.
-    
+
     The 'in' operator on None raises TypeError. This is defensive programming
     to handle edge cases in malformed configs - even though valid NGINX syntax
     always requires a header value.
@@ -126,34 +127,35 @@ class TestAddHeaderMultilineNoneValueFailsWithoutFix:
         This documents the root cause of issue #35.
         """
         value = None
-        
-        with pytest.raises(TypeError, match="argument of type 'NoneType' is not iterable"):
-            _ = "\n " in value  # noqa: This intentionally tests TypeError on None
+
+        with pytest.raises(
+            TypeError, match="argument of type 'NoneType' is not iterable"
+        ):
+            _ = "\n " in value  # Intentionally tests TypeError on None
 
     def test_fix_demonstrates_defensive_handling(self):
         """
         Demonstrate the defensive fix pattern.
-        
+
         The original code:
             if "\\n\\x20" in value or "\\n\\t" in value:
-        
+
         Crashes when value is None from malformed config. The fix:
             if value is None:
                 continue
         """
         # Simulating malformed config where header has no value
         headers = {"X-Malformed": None, "X-Valid": "proper value"}
-        
+
         processed = []
         for header, value in headers.items():
             # The fix: skip None values gracefully
             if value is None:
                 continue
-            
+
             # Now safe to use 'in' operator
             if "\n\x20" in value or "\n\t" in value:
                 processed.append(header)
-        
+
         # X-Malformed was skipped, X-Valid was processed
         assert "X-Malformed" not in processed
-

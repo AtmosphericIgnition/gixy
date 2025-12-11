@@ -24,7 +24,7 @@ https-only = true
 ```
 
 ## How can I find it?
-"Eazy"-breezy:
+"Easy"-peasy:
   - you have to find all the `if` directives that are in charge of `$http_origin` or `$http_referer` check;
   - make sure your regexes are a-ok.
 

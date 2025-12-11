@@ -73,5 +73,3 @@ https-only = true
 [regex-redos]
 url = ^/api/.*
 ```
-
-

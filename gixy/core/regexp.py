@@ -1,8 +1,7 @@
-from itertools import product
 import logging
+import random
 import re
-import random  # noqa: S311 - used for example generation, not security
-import itertools
+from itertools import product
 
 try:
     from cached_property import cached_property
@@ -68,9 +67,7 @@ def extract_groups(parsed, top=True):
                 # Captured group index can't be a string. E.g. for pattern "(?:la)" group name is "None"
                 result[token[1][0]] = token[1][1]
             result.update(extract_groups(token[1][1], False))
-        elif token[0] == sre_parse.MIN_REPEAT:
-            result.update(extract_groups(token[1][2], False))
-        elif token[0] == sre_parse.MAX_REPEAT:
+        elif token[0] == sre_parse.MIN_REPEAT or token[0] == sre_parse.MAX_REPEAT:
             result.update(extract_groups(token[1][2], False))
         elif token[0] == sre_parse.BRANCH:
             result.update(extract_groups(token[1][1], False))
@@ -116,7 +113,7 @@ def _merge_variants(variants):
     return "".join(result)
 
 
-class Token(object):
+class Token:
     type = None
 
     def __init__(self, token, parent, regexp):
@@ -221,7 +218,7 @@ class NotLiteralToken(Token):
         return random.choice(self.gen_char_list)
 
     def __str__(self):
-        return "[^{char}]".format(char=self.char)
+        return f"[^{self.char}]"
 
 
 class RangeToken(Token):
@@ -246,7 +243,7 @@ class RangeToken(Token):
         return chr(random.randint(self.token[1][0], self.token[1][1]))
 
     def __str__(self):
-        return "{left}-{right}".format(left=self.left, right=self.right)
+        return f"{self.left}-{self.right}"
 
 
 class CategoryToken(Token):
@@ -339,16 +336,14 @@ class MinRepeatToken(Token):
     def __str__(self):
         childs = "".join(str(x) for x in self.childs)
         if self.min == self.max:
-            return "{childs}{{{count}}}?".format(childs=childs, count=self.min)
+            return f"{childs}{{{self.min}}}?"
         if self.min == 0 and self.max == 1:
-            return "{childs}?".format(childs=childs)
+            return f"{childs}?"
         if self.min == 0 and self.max == sre_parse.MAXREPEAT:
-            return "{childs}*?".format(childs=childs)
+            return f"{childs}*?"
         if self.min == 1 and self.max == sre_parse.MAXREPEAT:
-            return "{childs}+?".format(childs=childs)
-        return "{childs}{{{min},{max}}}?".format(
-            childs=childs, min=self.min, max=self.max
-        )
+            return f"{childs}+?"
+        return f"{childs}{{{self.min},{self.max}}}?"
 
 
 class MaxRepeatToken(Token):
@@ -418,16 +413,14 @@ class MaxRepeatToken(Token):
     def __str__(self):
         childs = "".join(str(x) for x in self.childs)
         if self.min == self.max:
-            return "{childs}{{{count}}}".format(childs=childs, count=self.min)
+            return f"{childs}{{{self.min}}}"
         if self.min == 0 and self.max == 1:
-            return "{childs}?".format(childs=childs)
+            return f"{childs}?"
         if self.min == 0 and self.max == sre_parse.MAXREPEAT:
-            return "{childs}*".format(childs=childs)
+            return f"{childs}*"
         if self.min == 1 and self.max == sre_parse.MAXREPEAT:
-            return "{childs}+".format(childs=childs)
-        return "{childs}{{{min},{max}}}".format(
-            childs=childs, min=self.min, max=self.max
-        )
+            return f"{childs}+"
+        return f"{childs}{{{self.min},{self.max}}}"
 
 
 class BranchToken(Token):
@@ -447,7 +440,7 @@ class BranchToken(Token):
                     )
                 )
             else:
-                raise RuntimeError("Unexpected token {0} in branch".format(token))
+                raise RuntimeError(f"Unexpected token {token} in branch")
 
     def can_contain(self, char, skip_literal=True):
         for child in self.childs:
@@ -555,8 +548,8 @@ class SubpatternToken(Token):
     def __str__(self):
         childs = "".join(str(x) for x in self.childs)
         if self.group is None:
-            return "(?:{childs})".format(childs=childs)
-        return "({childs})".format(childs=childs)
+            return f"(?:{childs})"
+        return f"({childs})"
 
 
 class InternalSubpatternToken(Token):
@@ -686,7 +679,7 @@ class InToken(Token):
             elif isinstance(child, CategoryToken):
                 blacklisted.update(child.char_list)
             else:
-                LOG.info('Unexpected child "{0!r}"'.format(child))
+                LOG.info(f'Unexpected child "{child!r}"')
 
         for char in _build_reverse_list(set()):
             if char not in blacklisted:
@@ -781,7 +774,7 @@ class GroupRefToken(Token):
         return self.group.generate(context)
 
     def __str__(self):
-        return "\\\\{0}".format(self.id)
+        return f"\\\\{self.id}"
 
 
 class AssertToken(Token):
@@ -874,17 +867,15 @@ def parse(sre_obj, parent=None, regexp=None):
             result.append(AtToken(token=token, parent=parent, regexp=regexp))
         elif token[0] == sre_parse.GROUPREF:
             result.append(GroupRefToken(token=token, parent=parent, regexp=regexp))
-        elif token[0] == sre_parse.ASSERT:
-            pass  # TODO(buglloc): Do it!
-        elif token[0] == sre_parse.ASSERT_NOT:
+        elif token[0] == sre_parse.ASSERT or token[0] == sre_parse.ASSERT_NOT:
             pass  # TODO(buglloc): Do it!
         else:
-            LOG.info('Unexpected token "{0}"'.format(token[0]))
+            LOG.info(f'Unexpected token "{token[0]}"')
 
     return result
 
 
-class GenerationContext(object):
+class GenerationContext:
     def __init__(self, char, max_repeat=5, strict=False, anchored=True):
         self.char = char
         self.max_repeat = max_repeat
@@ -892,7 +883,7 @@ class GenerationContext(object):
         self.anchored = anchored
 
 
-class Regexp(object):
+class Regexp:
     def __init__(
         self, source, strict=False, case_sensitive=True, _root=None, _parsed=None
     ):

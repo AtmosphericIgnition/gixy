@@ -30,10 +30,8 @@ class add_header_multiline(Plugin):
                 break
             if "\n" in value:
                 reason = (
-                    'A newline character is found in the directive "{directive}". The resulting header {header} will be '
-                    "incomplete. Ensure the value is fit on a single line".format(
-                        directive=directive.name, header=header
-                    )
+                    f'A newline character is found in the directive "{directive.name}". The resulting header {header} will be '
+                    "incomplete. Ensure the value is fit on a single line"
                 )
                 self.add_issue(
                     severity=gixy.severity.HIGH, directive=directive, reason=reason

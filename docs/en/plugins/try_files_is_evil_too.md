@@ -55,4 +55,3 @@ If you're serving dynamic content where files change frequently, or using a RAM 
 - [try_files is evil too](https://www.getpagespeed.com/server-setup/nginx-try_files-is-evil-too)
 
 --8<-- "en/snippets/nginx-extras-cta.md"
-

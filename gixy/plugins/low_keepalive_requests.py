@@ -29,4 +29,3 @@ class low_keepalive_requests(Plugin):
                 directive=[directive],
                 reason="The keepalive_requests directive should be at least 1000.",
             )
-

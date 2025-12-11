@@ -95,7 +95,7 @@ location /proxy-pass-uri {
     }
 }
 
-# try_files wont work due to if
+# try_files won't work due to if
 
 location /if-try-files {
      try_files  /file  @fallback;
@@ -123,7 +123,7 @@ location /crash {
     }
 }
 
-# alias with captures isn't correcly inherited into implicit nested
+# alias with captures isn't correctly inherited into implicit nested
 # location created by if
 
 location ~* ^/if-and-alias/(?<file>.*) {

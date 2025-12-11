@@ -97,7 +97,7 @@ server {
 
 The `server_tokens` directive can be used in:
 - `http` - Applies to all servers
-- `server` - Applies to specific server and its locations  
+- `server` - Applies to specific server and its locations
 - `location` - Applies to specific location
 
 ## Plugin Configuration

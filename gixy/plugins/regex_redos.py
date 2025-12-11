@@ -8,7 +8,7 @@ No external dependencies required - uses Python's built-in sre_parse module.
 
 Detects:
   - Nested quantifiers: (a+)+, (a*)+, ((ab)+)+ → exponential O(2^n) backtracking
-  - Overlapping alternatives: (a|ab)+, (.|x)+ → polynomial O(n^2) backtracking  
+  - Overlapping alternatives: (a|ab)+, (.|x)+ → polynomial O(n^2) backtracking
   - Adjacent overlapping quantifiers: .*.*something → polynomial backtracking
   - Quantifiers in lookaheads: (?=.*a)+ → can cause issues
 
@@ -20,13 +20,24 @@ Example attack:
 
 import re
 import sre_parse
-from sre_parse import LITERAL, NOT_LITERAL, RANGE, AT, IN, ANY, CATEGORY
-from sre_parse import BRANCH, SUBPATTERN, ASSERT, ASSERT_NOT
-from sre_parse import MAX_REPEAT, MIN_REPEAT
+from sre_parse import (
+    ANY,
+    ASSERT,
+    ASSERT_NOT,
+    AT,
+    BRANCH,
+    CATEGORY,
+    IN,
+    LITERAL,
+    MAX_REPEAT,
+    MIN_REPEAT,
+    NOT_LITERAL,
+    RANGE,
+    SUBPATTERN,
+)
 
 import gixy
 from gixy.plugins.plugin import Plugin
-
 
 # Quantifier opcodes
 QUANTIFIERS = (MAX_REPEAT, MIN_REPEAT)
@@ -34,16 +45,16 @@ QUANTIFIERS = (MAX_REPEAT, MIN_REPEAT)
 
 class RedosVulnerability:
     """Represents a detected ReDoS vulnerability with details."""
-    
+
     EXPONENTIAL = "exponential"  # O(2^n) - very dangerous
-    POLYNOMIAL = "polynomial"    # O(n^k) - dangerous
-    
+    POLYNOMIAL = "polynomial"  # O(n^k) - dangerous
+
     def __init__(self, vuln_type, description, pattern_snippet=None, attack_hint=None):
         self.type = vuln_type
         self.description = description
         self.pattern_snippet = pattern_snippet
         self.attack_hint = attack_hint
-    
+
     def __str__(self):
         result = self.description
         if self.attack_hint:
@@ -54,107 +65,115 @@ class RedosVulnerability:
 class RedosAnalyzer:
     """
     Analyzes regex patterns for ReDoS vulnerabilities using sre_parse.
-    
+
     This analyzer uses static analysis of the regex AST to detect patterns
-    known to cause catastrophic backtracking. It requires no external 
+    known to cause catastrophic backtracking. It requires no external
     dependencies and runs in milliseconds.
-    
+
     Detection categories:
-    
+
     1. NESTED QUANTIFIERS (Exponential - O(2^n))
        - (a+)+, (a*)+, (a+)*, (a*)*
        - ((ab)+)+, ((a|b)+)+
        - Any quantifier containing another quantifier
-       
+
     2. OVERLAPPING ALTERNATIVES (Polynomial - O(n^k))
        - (a|ab)+ where 'a' is prefix of 'ab'
        - (.|x)+ where '.' matches 'x'
        - Regex parser optimizes (a|ab) to a(?:|b)
-       
+
     3. ADJACENT OVERLAPPING QUANTIFIERS (Polynomial)
        - .*.*something - two greedy quantifiers competing
        - .+.+end - similar issue
     """
-    
+
     def __init__(self, pattern, case_insensitive=False):
         self.pattern = pattern
         self.flags = re.IGNORECASE if case_insensitive else 0
         self.vulnerabilities = []
-        
+
     def analyze(self):
         """
         Analyze the pattern and return list of RedosVulnerability objects.
         Returns empty list if pattern is safe.
         """
         self.vulnerabilities = []
-        
+
         try:
             parsed = sre_parse.parse(self.pattern, self.flags)
         except (re.error, Exception):
             # If we can't parse it, we can't analyze it
             return []
-        
+
         # Check for various vulnerability patterns
         self._check_nested_quantifiers(parsed, depth=0, in_quantifier=False)
         self._check_overlapping_alternatives(parsed)
         self._check_adjacent_quantifiers(parsed)
-        
+
         return self.vulnerabilities
-    
+
     def _check_nested_quantifiers(self, parsed, depth, in_quantifier):
         """
         Recursively check for nested quantifiers - causes EXPONENTIAL backtracking.
-        
+
         Examples:
         - (a+)+   → O(2^n) for input "aaa...b"
-        - (a*)+   → O(2^n) 
+        - (a*)+   → O(2^n)
         - ((ab)+)+ → O(2^n)
         """
         for op, av in parsed:
             if op in QUANTIFIERS:
                 min_repeat, max_repeat, subpattern = av
-                
+
                 # Check if this quantifier can match variable length
-                can_repeat = max_repeat > min_repeat or max_repeat == sre_parse.MAXREPEAT
-                
+                can_repeat = (
+                    max_repeat > min_repeat or max_repeat == sre_parse.MAXREPEAT
+                )
+
                 if can_repeat:
                     if in_quantifier:
                         # Found nested quantifier!
-                        self.vulnerabilities.append(RedosVulnerability(
-                            RedosVulnerability.EXPONENTIAL,
-                            "Nested quantifier detected - causes exponential O(2^n) backtracking",
-                            attack_hint="repeat the matching char many times + non-matching char"
-                        ))
+                        self.vulnerabilities.append(
+                            RedosVulnerability(
+                                RedosVulnerability.EXPONENTIAL,
+                                "Nested quantifier detected - causes exponential O(2^n) backtracking",
+                                attack_hint="repeat the matching char many times + non-matching char",
+                            )
+                        )
                         return
-                    
+
                     # Check if the subpattern itself contains quantifiers
                     if self._contains_quantifier(subpattern):
-                        self.vulnerabilities.append(RedosVulnerability(
-                            RedosVulnerability.EXPONENTIAL,
-                            "Nested quantifier in group - causes exponential O(2^n) backtracking",
-                            attack_hint="repeat the matching char many times + non-matching char"
-                        ))
+                        self.vulnerabilities.append(
+                            RedosVulnerability(
+                                RedosVulnerability.EXPONENTIAL,
+                                "Nested quantifier in group - causes exponential O(2^n) backtracking",
+                                attack_hint="repeat the matching char many times + non-matching char",
+                            )
+                        )
                         return
-                    
+
                     # Recurse into the subpattern
-                    self._check_nested_quantifiers(subpattern, depth + 1, in_quantifier=True)
+                    self._check_nested_quantifiers(
+                        subpattern, depth + 1, in_quantifier=True
+                    )
                 else:
                     self._check_nested_quantifiers(subpattern, depth + 1, in_quantifier)
-                    
+
             elif op == SUBPATTERN:
                 _, _, _, subpattern = av
                 self._check_nested_quantifiers(subpattern, depth + 1, in_quantifier)
-                
+
             elif op == BRANCH:
                 _, branches = av
                 for branch in branches:
                     self._check_nested_quantifiers(branch, depth + 1, in_quantifier)
-                    
+
             elif op in (ASSERT, ASSERT_NOT):
                 _, subpattern = av
                 # Quantifiers in lookaheads can also be problematic
                 self._check_nested_quantifiers(subpattern, depth + 1, in_quantifier)
-    
+
     def _contains_quantifier(self, parsed):
         """Check if parsed pattern contains any unbounded quantifiers."""
         for op, av in parsed:
@@ -176,11 +195,11 @@ class RedosAnalyzer:
                 if self._contains_quantifier(subpattern):
                     return True
         return False
-    
+
     def _check_overlapping_alternatives(self, parsed, in_quantifier=False):
         """
         Check for overlapping alternatives with quantifiers - causes POLYNOMIAL backtracking.
-        
+
         Examples:
         - (a|ab)+   → Python optimizes to a(?:|b)+, empty branch causes backtracking
         - (.|x)+    → '.' matches 'x', so alternatives overlap
@@ -189,40 +208,46 @@ class RedosAnalyzer:
         for op, av in parsed:
             if op in QUANTIFIERS:
                 min_repeat, max_repeat, subpattern = av
-                can_repeat = max_repeat > min_repeat or max_repeat == sre_parse.MAXREPEAT
-                
+                can_repeat = (
+                    max_repeat > min_repeat or max_repeat == sre_parse.MAXREPEAT
+                )
+
                 if can_repeat:
                     if self._has_overlapping_branch(subpattern):
-                        self.vulnerabilities.append(RedosVulnerability(
-                            RedosVulnerability.POLYNOMIAL,
-                            "Overlapping alternatives in quantified group - causes polynomial O(n²) backtracking",
-                            attack_hint="repeat the common prefix many times"
-                        ))
+                        self.vulnerabilities.append(
+                            RedosVulnerability(
+                                RedosVulnerability.POLYNOMIAL,
+                                "Overlapping alternatives in quantified group - causes polynomial O(n²) backtracking",
+                                attack_hint="repeat the common prefix many times",
+                            )
+                        )
                         return
                     self._check_overlapping_alternatives(subpattern, in_quantifier=True)
                 else:
                     self._check_overlapping_alternatives(subpattern, in_quantifier)
-                    
+
             elif op == SUBPATTERN:
                 _, _, _, subpattern = av
                 self._check_overlapping_alternatives(subpattern, in_quantifier)
-                
+
             elif op == BRANCH:
                 _, branches = av
                 if in_quantifier and self._branches_overlap(branches):
-                    self.vulnerabilities.append(RedosVulnerability(
-                        RedosVulnerability.POLYNOMIAL,
-                        "Overlapping alternatives in quantified group - causes polynomial O(n²) backtracking",
-                        attack_hint="repeat the common prefix many times"
-                    ))
+                    self.vulnerabilities.append(
+                        RedosVulnerability(
+                            RedosVulnerability.POLYNOMIAL,
+                            "Overlapping alternatives in quantified group - causes polynomial O(n²) backtracking",
+                            attack_hint="repeat the common prefix many times",
+                        )
+                    )
                     return
                 for branch in branches:
                     self._check_overlapping_alternatives(branch, in_quantifier)
-    
+
     def _check_adjacent_quantifiers(self, parsed, prev_was_greedy_quantifier=False):
         """
         Check for adjacent quantifiers that can match overlapping content.
-        
+
         Examples:
         - .*.*end    → two greedy .* compete for the same characters
         - .+.+suffix → similar issue
@@ -232,25 +257,27 @@ class RedosAnalyzer:
             if op in QUANTIFIERS:
                 min_repeat, max_repeat, subpattern = av
                 can_be_greedy = max_repeat == sre_parse.MAXREPEAT or max_repeat > 1
-                
+
                 # Check if this quantifier matches "anything" (. or broad class)
                 matches_anything = self._matches_broad_input(subpattern)
-                
+
                 if prev_was_greedy_quantifier and can_be_greedy and matches_anything:
-                    self.vulnerabilities.append(RedosVulnerability(
-                        RedosVulnerability.POLYNOMIAL,
-                        "Adjacent greedy quantifiers matching overlapping content - causes polynomial backtracking",
-                        attack_hint="long string of matching characters without the expected suffix"
-                    ))
+                    self.vulnerabilities.append(
+                        RedosVulnerability(
+                            RedosVulnerability.POLYNOMIAL,
+                            "Adjacent greedy quantifiers matching overlapping content - causes polynomial backtracking",
+                            attack_hint="long string of matching characters without the expected suffix",
+                        )
+                    )
                     return
-                
+
                 prev_was_greedy_quantifier = can_be_greedy and matches_anything
                 self._check_adjacent_quantifiers(subpattern, False)
-                
+
             elif op == SUBPATTERN:
                 _, _, _, subpattern = av
                 self._check_adjacent_quantifiers(subpattern, prev_was_greedy_quantifier)
-                
+
             elif op == BRANCH:
                 _, branches = av
                 for branch in branches:
@@ -258,7 +285,7 @@ class RedosAnalyzer:
             else:
                 # Reset after non-quantifier
                 prev_was_greedy_quantifier = False
-    
+
     def _matches_broad_input(self, parsed):
         """Check if pattern matches a broad range of input (like . or [^x])."""
         if len(parsed) != 1:
@@ -283,7 +310,7 @@ class RedosAnalyzer:
             if char_count > 10:  # Arbitrary threshold for "broad"
                 return True
         return False
-    
+
     def _has_overlapping_branch(self, parsed):
         """Check if pattern contains a BRANCH with overlapping or empty alternatives."""
         for op, av in parsed:
@@ -304,19 +331,19 @@ class RedosAnalyzer:
                 if self._has_overlapping_branch(subpattern):
                     return True
         return False
-    
+
     def _branches_overlap(self, branches):
         """
         Check if any branches in an alternation can match the same input.
         """
         if len(branches) < 2:
             return False
-            
+
         # Check for '.' (ANY) in any branch
         for branch in branches:
             if self._contains_any(branch):
                 return True
-        
+
         # Check for overlapping first characters
         first_chars = []
         for branch in branches:
@@ -324,14 +351,14 @@ class RedosAnalyzer:
             if chars is None:
                 return True
             first_chars.append(chars)
-        
+
         for i, chars1 in enumerate(first_chars):
-            for chars2 in first_chars[i+1:]:
+            for chars2 in first_chars[i + 1 :]:
                 if chars1 & chars2:
                     return True
-        
+
         return False
-    
+
     def _contains_any(self, parsed):
         """Check if pattern contains ANY (.) matcher."""
         for op, av in parsed:
@@ -351,19 +378,17 @@ class RedosAnalyzer:
                 if self._contains_any(subpattern):
                     return True
         return False
-    
+
     def _get_first_chars(self, parsed):
         """Get possible first characters. Returns None if could match anything."""
         if not parsed:
             return set()
-            
+
         op, av = parsed[0]
-        
+
         if op == LITERAL:
             return {chr(av)}
-        elif op == NOT_LITERAL:
-            return None
-        elif op == ANY:
+        elif op in (NOT_LITERAL, ANY):
             return None
         elif op == IN:
             chars = set()
@@ -399,46 +424,46 @@ class RedosAnalyzer:
             return self._get_first_chars(subpattern)
         elif op == AT:
             return self._get_first_chars(parsed[1:]) if len(parsed) > 1 else set()
-        
+
         return None
 
 
 class regex_redos(Plugin):
     r"""
     🛡️ ReDoS (Regular Expression Denial of Service) Detection
-    
+
     Detects regex patterns that can cause catastrophic backtracking,
     allowing attackers to DoS your nginx server with minimal resources.
-    
+
     ═══════════════════════════════════════════════════════════════════
     VULNERABILITY TYPES DETECTED
     ═══════════════════════════════════════════════════════════════════
-    
+
     1. NESTED QUANTIFIERS (Exponential - O(2^n)) 🔴 CRITICAL
-       location ~ ^/(a+)+$           
-       location ~ ^/((ab)*)+$        
+       location ~ ^/(a+)+$
+       location ~ ^/((ab)*)+$
        → Input "/aaaaaaaaaaaaaaab" tries 2^n paths
-       
+
     2. OVERLAPPING ALTERNATIVES (Polynomial - O(n²)) 🟠 HIGH
-       location ~ ^/(a|ab)+$         
-       location ~ ^/(.|x)+$          
+       location ~ ^/(a|ab)+$
+       location ~ ^/(.|x)+$
        → Alternatives match same input, causing backtracking
-       
+
     3. ADJACENT QUANTIFIERS (Polynomial) 🟠 HIGH
        location ~ ^/.*.*end$
        → Two greedy quantifiers compete for same characters
-    
+
     ═══════════════════════════════════════════════════════════════════
     SAFE PATTERNS
     ═══════════════════════════════════════════════════════════════════
-    
+
        location ~ ^/[a-z]+$          # Simple character class ✓
        location ~ ^/\d{1,10}$        # Bounded quantifier ✓
        location ~ ^/(foo|bar)$       # Non-overlapping alternatives ✓
        location = /exact             # Exact match (no regex) ✓
-    
+
     ═══════════════════════════════════════════════════════════════════
-    
+
     Zero external dependencies - uses Python's built-in sre_parse module.
     Analysis runs in milliseconds.
     """
@@ -456,46 +481,46 @@ class regex_redos(Plugin):
 
     def audit(self, directive):
         """Extract regex patterns from directive and check for ReDoS vulnerabilities."""
-        
+
         patterns = self._extract_patterns(directive)
-        
+
         for pattern, context in patterns:
             if not pattern:
                 continue
-                
+
             case_insensitive = self._is_case_insensitive(directive, context)
-            
+
             analyzer = RedosAnalyzer(pattern, case_insensitive)
             vulnerabilities = analyzer.analyze()
-            
+
             if vulnerabilities:
                 vuln = vulnerabilities[0]
                 severity = gixy.severity.HIGH
                 if vuln.type == RedosVulnerability.EXPONENTIAL:
                     severity = gixy.severity.HIGH  # Could make CRITICAL if we had it
-                
+
                 reason = f"Regex `{pattern}` is vulnerable: {vuln}"
                 self.add_issue(directive=directive, reason=reason, severity=severity)
-    
+
     def _extract_patterns(self, directive):
         """
         Extract regex patterns from various directive types.
         Returns list of (pattern, context) tuples.
         """
         patterns = []
-        
+
         if directive.name == "location":
             if directive.modifier in ("~", "~*"):
                 patterns.append((directive.path, "location"))
-                
+
         elif directive.name == "if":
             if directive.operand in ("~", "~*", "!~", "!~*"):
                 patterns.append((directive.value, "if"))
-                
+
         elif directive.name == "rewrite":
             if hasattr(directive, "pattern") and directive.pattern:
                 patterns.append((directive.pattern, "rewrite"))
-                
+
         elif directive.name == "server_name":
             for arg in directive.args:
                 if arg.startswith("~"):
@@ -503,7 +528,7 @@ class regex_redos(Plugin):
                     if pattern.startswith("*"):
                         pattern = pattern[1:]
                     patterns.append((pattern, "server_name"))
-        
+
         elif directive.name == "map":
             # Map blocks can have regex keys
             if hasattr(directive, "children"):
@@ -515,9 +540,9 @@ class regex_redos(Plugin):
                             if pattern.startswith("*"):
                                 pattern = pattern[1:]
                             patterns.append((pattern, "map"))
-        
+
         return patterns
-    
+
     def _is_case_insensitive(self, directive, context):
         """Determine if the regex is case-insensitive."""
         if directive.name == "location":

@@ -1,7 +1,7 @@
 import re
+
 import gixy
 from gixy.plugins.plugin import Plugin
-
 
 # =============================================================================
 # Value-Aware Security Header Classification
@@ -136,9 +136,9 @@ class add_header_redefinition(Plugin):
         raw_headers = self.config.get("headers")
         # Normalize configured headers to lowercase set for case-insensitive matching
         if isinstance(raw_headers, (list, tuple, set)):
-            self.interesting_headers = set(
+            self.interesting_headers = {
                 h.lower().strip() for h in raw_headers if h and isinstance(h, str)
-            )
+            }
         else:
             self.interesting_headers = set()
 

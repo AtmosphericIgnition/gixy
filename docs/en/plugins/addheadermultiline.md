@@ -52,5 +52,5 @@ add_header Content-Security-Policy $csp;
 This keeps your config readable while producing a valid single-line header.
 
 See also: [ServerFault: How to split nginx config across multiple lines](https://serverfault.com/questions/780075/how-to-split-the-nginx-config-across-multiple-lines)
- 
+
 --8<-- "en/snippets/nginx-extras-cta.md"

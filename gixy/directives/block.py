@@ -3,9 +3,9 @@ try:
 except ImportError:
     from functools import cached_property
 
-from gixy.directives.directive import Directive, MapDirective
-from gixy.core.variable import Variable, compile_script
 from gixy.core.regexp import Regexp
+from gixy.core.variable import Variable, compile_script
+from gixy.directives.directive import Directive, MapDirective
 
 
 def get_overrides():
@@ -182,7 +182,7 @@ class IfBlock(Block):
             # if ($request_method = POST)
             self.variable, self.operand, self.value = args
         else:
-            raise Exception('Unknown "if" definition, args: {0!r}'.format(args))
+            raise Exception(f'Unknown "if" definition, args: {args!r}')
 
     def __str__(self):
         return "{name} ({args}) {{".format(name=self.name, args=" ".join(self.args))
@@ -246,7 +246,7 @@ class IncludeBlock(Block):
         self.file_path = args[0]
 
     def __str__(self):
-        return "include {0};".format(self.file_path)
+        return f"include {self.file_path};"
 
 
 class MapBlock(Block):
@@ -257,6 +257,7 @@ class MapBlock(Block):
         ~*^re(.*)$ $1; <- this part is the directive, but MapBlock sets variables
     } <- this part is the block
     """
+
     nginx_name = "map"
     self_context = False
     provide_variables = True
@@ -264,7 +265,7 @@ class MapBlock(Block):
     def __init__(self, name, args):
         super(MapBlock, self).__init__(name, args)
         self.source = args[0]
-        self.variable = args[1].lstrip("$") # XXX: Why do we strip here?
+        self.variable = args[1].lstrip("$")  # XXX: Why do we strip here?
 
     def gather_map_directives(self, nodes):
         for node in nodes:
@@ -278,7 +279,7 @@ class MapBlock(Block):
         vars = []
         for child in list(self.gather_map_directives(self.children)):
             if not isinstance(child, MapDirective):
-                continue # XXX: Should never happen?
+                continue  # XXX: Should never happen?
             src_val = child.src_val
             dest_val = child.dest_val
 
@@ -298,16 +299,20 @@ class MapBlock(Block):
             for name, group in child.regex.groups.items():
                 result.append(
                     Variable(
-                        name=name, value=group, provider=child, boundary=None, ctx=src_val,
+                        name=name,
+                        value=group,
+                        provider=child,
+                        boundary=None,
+                        ctx=src_val,
                     )
                 )
-                break # Only need the first result (full expression)
+                break  # Only need the first result (full expression)
             if len(result) != 1:
                 continue
             vars.append(
                 Variable(
                     name=src_val,
-                    value=result[0].value, # Value is Regexp()
+                    value=result[0].value,  # Value is Regexp()
                     boundary=None,
                     provider=child,
                     have_script=False,
@@ -315,13 +320,22 @@ class MapBlock(Block):
                 ),
             )
 
-        return [Variable(name=self.variable, value=vars, boundary=None, provider=self, have_script=False)]
+        return [
+            Variable(
+                name=self.variable,
+                value=vars,
+                boundary=None,
+                provider=self,
+                have_script=False,
+            )
+        ]
 
     def __str__(self):
         mapblock_vars = []
         for i in self.variables[0].value:
             mapblock_vars.append(str(i.value))
-        return "{0} {1} ${2} {{".format(self.nginx_name, self.source, self.variable)
+        return f"{self.nginx_name} {self.source} ${self.variable} {{"
+
 
 class GeoBlock(Block):
     """
@@ -343,10 +357,10 @@ class GeoBlock(Block):
         super(GeoBlock, self).__init__(name, args)
         if len(args) == 1:  # geo uses $remote_addr as default source of the value
             source = "$remote_addr"
-            variable = args[0].lstrip("$") # XXX: Why do we strip here?
+            variable = args[0].lstrip("$")  # XXX: Why do we strip here?
         else:
             source = args[0]
-            variable = args[1].lstrip("$") # XXX: Why do we strip here?
+            variable = args[1].lstrip("$")  # XXX: Why do we strip here?
         self.source = source
         self.variable = variable
 
@@ -374,10 +388,18 @@ class GeoBlock(Block):
                     ctx=src_val,
                 ),
             )
-        return [Variable(name=self.variable, value=vars, boundary=None, provider=self, have_script=False)]
+        return [
+            Variable(
+                name=self.variable,
+                value=vars,
+                boundary=None,
+                provider=self,
+                have_script=False,
+            )
+        ]
 
     def __str__(self):
         mapblock_vars = []
         for i in self.variables[0].value:
             mapblock_vars.append(str(i.value))
-        return "{0} {1} ${2} {{".format(self.nginx_name, self.source, self.variable)
+        return f"{self.nginx_name} {self.source} ${self.variable} {{"

@@ -38,5 +38,3 @@ Prefix variables are supported using names ending with `_` (like built-ins), e.g
 - Drop-in variables override built-ins when names collide.
 - Only variables referenced during analysis are instantiated.
 - This mechanism affects variable resolution only; it does not change NGINX behavior.
-
-

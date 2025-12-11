@@ -4,7 +4,7 @@ import gixy
 from gixy.plugins.plugin import Plugin
 
 
-class PluginsManager(object):
+class PluginsManager:
     def __init__(self, config=None):
         self.imported = False
         self.config = config
@@ -73,7 +73,7 @@ class PluginsManager(object):
         return Plugin.__subclasses__()
 
     def get_plugins_descriptions(self):
-        return map(lambda a: a.name, self.plugins)
+        return (a.name for a in self.plugins)
 
     def audit(self, directive):
         for plugin in self.plugins:
@@ -85,7 +85,7 @@ class PluginsManager(object):
         """Call post_audit on plugins that support full config analysis when full config is detected."""
         if not self._is_full_config(root):
             return
-            
+
         for plugin in self.plugins:
             if plugin.supports_full_config:
                 plugin.post_audit(root)
@@ -94,7 +94,7 @@ class PluginsManager(object):
         """Detect if this is a full nginx config by checking for http block."""
         # Check if root has an http block child
         for child in root.children:
-            if child.name == 'http':
+            if child.name == "http":
                 return True
         return False
 

@@ -1,9 +1,8 @@
-import re
 import logging
-from typing import Optional
+import re
 
-from gixy.core.regexp import Regexp
 from gixy.core.context import get_context
+from gixy.core.regexp import Regexp
 
 LOG = logging.getLogger(__name__)
 # See ngx_http_script_compile in http/ngx_http_script.c
@@ -17,7 +16,7 @@ def compile_script(script, ctx=None):
         compile_script('http://$foo:$bar') ->
             [Variable('http://'), Variable($foo), Variable(':', Variable($bar).
 
-    :param str script: Nginx scrip.
+    :param str script: Nginx script.
     :return Variable[]: list of variable.
     """
     depends = []
@@ -30,14 +29,18 @@ def compile_script(script, ctx=None):
             if var:
                 depends.append(var)
             else:
-                LOG.info("Can't find variable '{0}' in script '{1}' inside block '{2}'.".format(var_val, script, str(context.block).replace("\n", " ")))
+                LOG.info(
+                    "Can't find variable '{0}' in script '{1}' inside block '{2}'.".format(
+                        var_val, script, str(context.block).replace("\n", " ")
+                    )
+                )
         elif var:
             # Literal
             depends.append(Variable(name=None, value=var, have_script=False, ctx=ctx))
     return depends
 
 
-class Variable(object):
+class Variable:
     def __init__(
         self,
         name,
@@ -69,19 +72,25 @@ class Variable(object):
         if isinstance(value, Regexp):
             self.regexp = value
         elif have_script:
-            self.depends = compile_script(value, ctx) # XXX: Do we want to append new_depends below?
-            for iteration in range(10): # 10 is arbitrary, just avoid infinite loop (is it possible?)
+            self.depends = compile_script(
+                value, ctx
+            )  # XXX: Do we want to append new_depends below?
+            for iteration in range(
+                10
+            ):  # 10 is arbitrary, just avoid infinite loop (is it possible?)
                 new_depends = compile_script(self.final_value, ctx)
                 if len(new_depends) == 0:
                     break
-                if type(new_depends[0].value) is list: # MapBlock, GeoBlock cannot be infinitely resolved
+                if (
+                    type(new_depends[0].value) is list
+                ):  # MapBlock, GeoBlock cannot be infinitely resolved
                     self.final_value = self.value
                     break
                 if len(new_depends) == 1 and self.final_value == new_depends[0].value:
                     break
                 self.depends = new_depends
                 all_vars = [str(i.value) for i in new_depends]
-                self.final_value = ''.join(all_vars)
+                self.final_value = "".join(all_vars)
 
     def can_contain(self, char):
         """
@@ -106,12 +115,20 @@ class Variable(object):
         # If the value is a list (hash block), check all dest_val values
         if isinstance(self.value, list):
             for var in self.value:
-                if not isinstance(var, Variable) or not var.provider or var.provider.nginx_name != 'map': # import MapDirective would be better but circular import..
-                    continue # break?
-                if var.provider.parent.nginx_name != 'map': # import MapBlock would be better but circular import..
-                    continue # break?
+                if (
+                    not isinstance(var, Variable)
+                    or not var.provider
+                    or var.provider.nginx_name != "map"
+                ):  # import MapDirective would be better but circular import..
+                    continue  # break?
+                if (
+                    var.provider.parent.nginx_name != "map"
+                ):  # import MapBlock would be better but circular import..
+                    continue  # break?
 
-                compiled_val = compile_script(var.provider.dest_val, ctx=var.provider.src_val) # Doesn't work for 'map $document_uri $v { ~*^[^\r\n]+$ $document_uri; }' but nothing we can do about that.
+                compiled_val = compile_script(
+                    var.provider.dest_val, ctx=var.provider.src_val
+                )  # Doesn't work for 'map $document_uri $v { ~*^[^\r\n]+$ $document_uri; }' but nothing we can do about that.
                 for dep in compiled_val:
                     if dep.can_contain(char):
                         return True
@@ -142,12 +159,18 @@ class Variable(object):
         # If the value is a list (hash block), check all values
         if isinstance(self.value, list):
             for var in self.value:
-                if not isinstance(var, Variable) or not var.provider or var.provider.nginx_name != 'map':
+                if (
+                    not isinstance(var, Variable)
+                    or not var.provider
+                    or var.provider.nginx_name != "map"
+                ):
                     continue
-                if var.provider.parent.nginx_name != 'map':
+                if var.provider.parent.nginx_name != "map":
                     continue
 
-                compiled_val = compile_script(var.provider.dest_val, ctx=var.provider.src_val)
+                compiled_val = compile_script(
+                    var.provider.dest_val, ctx=var.provider.src_val
+                )
                 if compiled_val:
                     if compiled_val[0].can_startswith(char):
                         return True
@@ -179,18 +202,24 @@ class Variable(object):
         if isinstance(self.value, list):
             # Ensure that every map value must contain the char
             for var in self.value:
-                if not isinstance(var, Variable) or not var.provider or var.provider.nginx_name != 'map':
+                if (
+                    not isinstance(var, Variable)
+                    or not var.provider
+                    or var.provider.nginx_name != "map"
+                ):
                     continue
-                if var.provider.parent.nginx_name != 'map':
+                if var.provider.parent.nginx_name != "map":
                     continue
 
-                compiled_val = compile_script(var.provider.dest_val, ctx=var.provider.src_val)
+                compiled_val = compile_script(
+                    var.provider.dest_val, ctx=var.provider.src_val
+                )
                 found_must_contain = False
                 for dep in compiled_val:
                     if dep.must_contain(char):
                         found_must_contain = True
                         break
-                if not found_must_contain: # A map value doesn't need to contain the char, therefore return False
+                if not found_must_contain:  # A map value doesn't need to contain the char, therefore return False
                     return False
 
             return True
@@ -221,12 +250,18 @@ class Variable(object):
         # If the value is a list (hash block), check all values
         if isinstance(self.value, list):
             for var in self.value:
-                if not isinstance(var, Variable) or not var.provider or var.provider.nginx_name != 'map':
+                if (
+                    not isinstance(var, Variable)
+                    or not var.provider
+                    or var.provider.nginx_name != "map"
+                ):
                     continue
-                if var.provider.parent.nginx_name != 'map':
+                if var.provider.parent.nginx_name != "map":
                     continue
 
-                compiled_val = compile_script(var.provider.dest_val, ctx=var.provider.src_val)
+                compiled_val = compile_script(
+                    var.provider.dest_val, ctx=var.provider.src_val
+                )
                 if not compiled_val or not compiled_val[0].must_startswith(char):
                     return False
 

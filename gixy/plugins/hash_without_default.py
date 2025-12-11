@@ -1,7 +1,8 @@
 import gixy
-from gixy.plugins.plugin import Plugin
+from gixy.directives.block import GeoBlock, MapBlock
 from gixy.directives.directive import MapDirective
-from gixy.directives.block import MapBlock, GeoBlock
+from gixy.plugins.plugin import Plugin
+
 
 class hash_without_default(Plugin):
     summary = "Detect when a hash block (map, geo) is used without a default value."
@@ -24,7 +25,11 @@ class hash_without_default(Plugin):
 
         found_default = False
         for child in entries:
-            if isinstance(child, MapDirective) and child.src_val == 'default' and child.dest_val is not None:
+            if (
+                isinstance(child, MapDirective)
+                and child.src_val == "default"
+                and child.dest_val is not None
+            ):
                 found_default = True
                 break
 
@@ -36,12 +41,12 @@ class hash_without_default(Plugin):
         # This is especially useful with limit_req/limit_conn where empty keys disable limits.
         # In that scenario, requiring an explicit default creates noise. Therefore, only warn
         # for map when there are two or more mapping entries and no explicit default.
-        if directive.name == 'map':
+        if directive.name == "map":
             entries_count = 0
             for child in entries:
                 if not isinstance(child, MapDirective):
                     continue
-                if child.src_val == 'default':
+                if child.src_val == "default":
                     continue
                 entries_count += 1
 
@@ -52,5 +57,5 @@ class hash_without_default(Plugin):
         # geo continues to require an explicit default regardless of entries count
         self.add_issue(
             directive=[directive] + directive.children,
-            reason="Missing default value in {0} ${1}".format(directive.name, directive.variable),
+            reason=f"Missing default value in {directive.name} ${directive.variable}",
         )

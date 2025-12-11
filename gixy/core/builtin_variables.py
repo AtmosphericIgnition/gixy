@@ -1,6 +1,5 @@
-import os
-import re
 import logging
+import os
 
 from gixy.core.regexp import Regexp
 from gixy.core.variable import Variable
@@ -269,9 +268,7 @@ def _normalize_value_token(token):
         return None
 
     # Strip possible raw prefix
-    raw_prefix = False
     if len(token) > 2 and token[0] in ("r", "R") and token[1] in ("'", '"'):
-        raw_prefix = True
         token = token[1:]
 
     # Strip quotes
@@ -291,7 +288,7 @@ def _parse_dropin_file(file_path):
     """
     result = {}
     try:
-        with open(file_path, "r") as fh:
+        with open(file_path) as fh:
             for raw_line in fh:
                 line = raw_line.strip()
                 if not line or line.startswith("#") or line.startswith(";"):

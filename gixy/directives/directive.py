@@ -1,10 +1,11 @@
 """This module contains all the classes for directives"""
 
-from gixy.core.variable import Variable
-from gixy.core.regexp import Regexp
-
 import ipaddress
- 
+
+from gixy.core.regexp import Regexp
+from gixy.core.variable import Variable
+
+
 def get_overrides():
     """Get a list of all directives that override the default behavior"""
     result = {}
@@ -69,7 +70,7 @@ class Directive:
 
     def find_imperative_directives_in_scope(self, name, ancestors=True):
         """Find imperative directives (like upstream blocks) in the current scope.
-        
+
         Unlike find_directives_in_scope which looks for directives before this one,
         this method finds blocks/directives that can be referenced from anywhere
         (like upstream blocks which are defined at http level but used in server/location).
@@ -311,8 +312,14 @@ class ResolverDirective(Directive):
         """Get a list of external nameservers used by the resolver directive"""
         external_nameservers = []
         local_suffixes = (
-            ".intranet", ".internal", ".private", ".corp", ".home",
-            ".lan", ".local", ".localhost"
+            ".intranet",
+            ".internal",
+            ".private",
+            ".corp",
+            ".home",
+            ".lan",
+            ".local",
+            ".localhost",
         )
         for addr in self.addresses:
             if any(addr.endswith(suffix) for suffix in local_suffixes):
@@ -323,6 +330,7 @@ class ResolverDirective(Directive):
                 continue
             external_nameservers.append(addr)
         return external_nameservers
+
 
 class MapDirective(Directive):
     """
@@ -341,17 +349,19 @@ class MapDirective(Directive):
     }
     """
 
-    nginx_name = "map" # XXX: Also used for "geo". Could also work for "charset_map"
+    nginx_name = "map"  # XXX: Also used for "geo". Could also work for "charset_map"
     provide_variables = True
 
     def __init__(self, source, destination):
         super().__init__(source, destination)
         self.src_val = source
-        self.dest_val = destination[0] if destination and len(destination) == 1 else None
+        self.dest_val = (
+            destination[0] if destination and len(destination) == 1 else None
+        )
         self.regex = None
 
         if self.is_regex:
-            if self.src_val.startswith('~*'):
+            if self.src_val.startswith("~*"):
                 pattern = self.src_val[2:]
                 cs = False
             else:
@@ -376,15 +386,25 @@ class MapDirective(Directive):
             return []
 
         ancestor = self.parent
-        while ancestor is not None and ancestor.nginx_name != 'map': # XXX: Better to check isinstance(ancestor, MapBlock) but circular import..
-            ancestor = getattr(ancestor, 'parent', None)
+        while (
+            ancestor is not None and ancestor.nginx_name != "map"
+        ):  # XXX: Better to check isinstance(ancestor, MapBlock) but circular import..
+            ancestor = getattr(ancestor, "parent", None)
 
-        if ancestor is None: # This happens for "geo" directives, which is ok because geo directive does not provide variables.
+        if (
+            ancestor is None
+        ):  # This happens for "geo" directives, which is ok because geo directive does not provide variables.
             return []
 
         result = []
         for name, group in self.regex.groups.items():
             result.append(
-                Variable(name=name, value=group, provider=self, boundary=None, ctx=self.src_val)
+                Variable(
+                    name=name,
+                    value=group,
+                    provider=self,
+                    boundary=None,
+                    ctx=self.src_val,
+                )
             )
         return result

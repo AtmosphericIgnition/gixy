@@ -170,5 +170,3 @@ Community guidelines:
   * Be respectful and constructive in discussions;
   * This project uses AI-assisted development - disparaging remarks about AI tooling are unwelcome;
   * Focus on the code and ideas, not the tools used to create them.
-
-

@@ -1,18 +1,18 @@
 """Main module for Gixy CLI"""
 
 import argparse
+import copy
+import logging
 import os
 import sys
-import logging
-import copy
 
 import gixy
-from gixy.core.manager import Manager as Gixy
-from gixy.formatters import get_all as formatters
-from gixy.core.plugins_manager import PluginsManager
-from gixy.core.config import Config
 from gixy.cli.argparser import create_parser
+from gixy.core.config import Config
 from gixy.core.exceptions import InvalidConfiguration
+from gixy.core.manager import Manager as Gixy
+from gixy.core.plugins_manager import PluginsManager
+from gixy.formatters import get_all as formatters
 
 LOG = logging.getLogger()
 
@@ -46,7 +46,7 @@ def _str_to_bool(value):
         return False
 
     raise argparse.ArgumentTypeError(
-        "Expected a boolean value (true/false, yes/no, 1/0), got {!r}".format(value)
+        f"Expected a boolean value (true/false, yes/no, 1/0), got {value!r}"
     )
 
 
@@ -73,7 +73,7 @@ def _create_plugin_help(plugin_cls, opt_key, option):
         if isinstance(options_help, dict):
             base_desc = options_help.get(opt_key, "")
 
-    parts = [p for p in [base_desc, usage_hint, "Default: {0}".format(default)] if p]
+    parts = [p for p in [base_desc, usage_hint, f"Default: {default}"] if p]
     return " ".join(parts)
 
 
@@ -89,7 +89,7 @@ def _get_cli_parser():
     )
 
     parser.add_argument(
-        "-v", "--version", action="version", version="Gixy v{0}".format(gixy.version)
+        "-v", "--version", action="version", version=f"Gixy v{gixy.version}"
     )
 
     parser.add_argument(
@@ -167,10 +167,8 @@ def _get_cli_parser():
 
         options = copy.deepcopy(plugin_cls.options)
         for opt_key, opt_val in options.items():
-            option_name = "--{plugin}-{key}".format(plugin=name, key=opt_key).replace(
-                "_", "-"
-            )
-            dst_name = "{plugin}:{key}".format(plugin=name, key=opt_key)
+            option_name = f"--{name}-{opt_key}".replace("_", "-")
+            dst_name = f"{name}:{opt_key}"
             if isinstance(opt_val, (tuple, list, set)):
                 opt_type = str
             elif isinstance(opt_val, bool):
@@ -208,9 +206,7 @@ def main():
 
             if not os.path.exists(path):
                 sys.stderr.write(
-                    "File {path!r} was not found.\nPlease specify correct path to configuration.\n".format(
-                        path=path
-                    )
+                    f"File {path!r} was not found.\nPlease specify correct path to configuration.\n"
                 )
                 sys.exit(1)
 
@@ -243,14 +239,16 @@ def main():
         plugins=tests,
         skips=skips,
         allow_includes=not args.disable_includes,
-        vars_dirs=[x.strip() for x in args.vars_dirs.split(",")] if args.vars_dirs else None,
+        vars_dirs=[x.strip() for x in args.vars_dirs.split(",")]
+        if args.vars_dirs
+        else None,
     )
 
     for plugin_cls in PluginsManager().plugins_classes:
         name = plugin_cls.__name__
         options = copy.deepcopy(plugin_cls.options)
         for opt_key, opt_val in options.items():
-            option_name = "{name}:{key}".format(name=name, key=opt_key)
+            option_name = f"{name}:{opt_key}"
             if option_name not in vars(args):
                 continue
 
@@ -261,7 +259,7 @@ def main():
             if isinstance(opt_val, tuple):
                 val = tuple([x.strip() for x in val.split(",")])
             elif isinstance(opt_val, set):
-                val = set([x.strip() for x in val.split(",")])
+                val = {x.strip() for x in val.split(",")}
             elif isinstance(opt_val, list):
                 val = [x.strip() for x in val.split(",")]
             options[opt_key] = val
@@ -295,5 +293,7 @@ def main():
     sys.exit(0)
 
 
-if __name__ == "__main__":  # pragma: no cover - invoked only via `python -m gixy.cli.main`
+if (
+    __name__ == "__main__"
+):  # pragma: no cover - invoked only via `python -m gixy.cli.main`
     main()

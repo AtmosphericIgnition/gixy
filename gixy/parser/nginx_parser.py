@@ -1,18 +1,18 @@
-import os
+import fnmatch
 import glob
 import logging
-import fnmatch
+import os
 
 from gixy.core.exceptions import InvalidConfiguration
+from gixy.directives import block, directive
 from gixy.parser import raw_parser
 from gixy.parser.raw_parser import ParseException
-from gixy.directives import block, directive
 from gixy.utils.text import to_native
 
 LOG = logging.getLogger(__name__)
 
 
-class NginxParser(object):
+class NginxParser:
     def __init__(self, cwd="", allow_includes=True):
         self.cwd = cwd
         self.configs = {}
@@ -37,19 +37,13 @@ class NginxParser(object):
         Raises:
             InvalidConfiguration: When parsing fails.
         """
-        LOG.debug("Parse file: {0}".format(display_path if display_path else path))
+        LOG.debug(f"Parse file: {display_path if display_path else path}")
         root = self._ensure_root(root)
         try:
             parsed = self.parser.parse_path(path)
         except ParseException as e:
-            error_msg = "char {char} (line:{line}, col:{col})".format(
-                char=e.loc, line=e.lineno, col=e.col
-            )
-            LOG.error(
-                'Failed to parse config "{file}": {error}'.format(
-                    file=path, error=error_msg
-                )
-            )
+            error_msg = f"char {e.loc} (line:{e.lineno}, col:{e.col})"
+            LOG.error(f'Failed to parse config "{path}": {error_msg}')
             raise InvalidConfiguration(error_msg)
 
         current_path = display_path if display_path else path
@@ -74,27 +68,28 @@ class NginxParser(object):
             InvalidConfiguration: When parsing fails.
         """
         root = self._ensure_root(root)
-        import tempfile
         import os
-        data = content if isinstance(content, (bytes, bytearray)) else content.encode('utf-8')
+        import tempfile
+
+        data = (
+            content
+            if isinstance(content, (bytes, bytearray))
+            else content.encode("utf-8")
+        )
         tmp_filename = None
         try:
-            with tempfile.NamedTemporaryFile(mode='wb', suffix='.conf', delete=False) as tmp:
+            with tempfile.NamedTemporaryFile(
+                mode="wb", suffix=".conf", delete=False
+            ) as tmp:
                 tmp.write(data)
                 tmp_filename = tmp.name
             return self.parse_file(tmp_filename, root=root, display_path=path_info)
         except ParseException as e:
-            error_msg = "char {char} (line:{line}, col:{col})".format(
-                char=e.loc, line=e.lineno, col=e.col
-            )
+            error_msg = f"char {e.loc} (line:{e.lineno}, col:{e.col})"
             if path_info:
-                LOG.error(
-                    'Failed to parse config "{file}": {error}'.format(
-                        file=path_info, error=error_msg
-                    )
-                )
+                LOG.error(f'Failed to parse config "{path_info}": {error_msg}')
             else:
-                LOG.error("Failed to parse config: {error}".format(error=error_msg))
+                LOG.error(f"Failed to parse config: {error_msg}")
             raise InvalidConfiguration(error_msg)
         finally:
             if tmp_filename:
@@ -133,7 +128,11 @@ class NginxParser(object):
             block.Root: The root containing parsed directives.
         """
         # Handle nginx -T dump format if detected (multi-file with file delimiters)
-        if len(parsed_block) and isinstance(parsed_block[0], dict) and parsed_block[0].get('kind') == "file_delimiter":
+        if (
+            len(parsed_block)
+            and isinstance(parsed_block[0], dict)
+            and parsed_block[0].get("kind") == "file_delimiter"
+        ):
             LOG.info("Switched to parse nginx configuration dump.")
             root_filename = self._prepare_dump(parsed_block)
             self.is_dump = True
@@ -150,35 +149,41 @@ class NginxParser(object):
         for node in parsed_block:
             if not isinstance(node, dict):
                 continue
-            parsed_type = node.get('kind')
-            if parsed_type == 'comment' or parsed_type is None:
+            parsed_type = node.get("kind")
+            if parsed_type == "comment" or parsed_type is None:
                 continue
 
-            if parsed_type == 'include':
+            if parsed_type == "include":
                 # include is handled specially
                 path_info = self.path_info
-                self._resolve_include(node.get('args', []), parent)
+                self._resolve_include(node.get("args", []), parent)
                 self._path_stack = path_info
                 continue
 
-            parsed_name = node.get('name')
-            parsed_line = node.get('line')
-            if parsed_type == 'block':
-                parsed_args = [node.get('args', []), node.get('children', [])]
-            elif parsed_type == 'directive':
-                parsed_args = node.get('args', [])
-            elif parsed_type == 'hash_value':
-                parsed_args = node.get('args', [])
+            parsed_name = node.get("name")
+            parsed_line = node.get("line")
+            if parsed_type == "block":
+                parsed_args = [node.get("args", []), node.get("children", [])]
+            elif parsed_type == "directive" or parsed_type == "hash_value":
+                parsed_args = node.get("args", [])
             else:
                 # unknown or file_delimiter should not be here
                 continue
 
-            if parent.name in ['map', 'geo'] and parsed_type == 'directive': # Hack because included maps are treated as directives (bleh)
+            if (
+                parent.name in ["map", "geo"] and parsed_type == "directive"
+            ):  # Hack because included maps are treated as directives (bleh)
                 if isinstance(parsed_args, list) and len(parsed_args) > 1:
-                    error_msg = "Invalid map with {} parameters: map {} {} {{ {} {}; }};".format(len(parsed_args), parent.args[0], parent.args[1], parsed_name, ' '.join(parsed_args))
-                    LOG.warn('Failed to parse "{path_info}": {error}'.format(path_info=self.path_info, error=error_msg))
+                    error_msg = "Invalid map with {} parameters: map {} {} {{ {} {}; }};".format(
+                        len(parsed_args),
+                        parent.args[0],
+                        parent.args[1],
+                        parsed_name,
+                        " ".join(parsed_args),
+                    )
+                    LOG.warn(f'Failed to parse "{self.path_info}": {error_msg}')
                     continue
-                parsed_type = 'hash_value'
+                parsed_type = "hash_value"
 
             directive_inst = self.directive_factory(
                 parsed_type, parsed_name, parsed_args
@@ -233,7 +238,7 @@ class NginxParser(object):
         if self.is_dump:
             return self._resolve_dump_include(pattern=pattern, parent=parent)
         if not self.allow_includes:
-            LOG.debug("Includes are disallowed, skip: {0}".format(pattern))
+            LOG.debug(f"Includes are disallowed, skip: {pattern}")
             return
 
         return self._resolve_file_include(pattern=pattern, parent=parent)
@@ -251,9 +256,9 @@ class NginxParser(object):
         if not exists:
             # Align behavior with nginx: unmatched glob patterns are not warnings
             if glob.has_magic(path):
-                LOG.debug("Include pattern matched no files: {0}".format(path))
+                LOG.debug(f"Include pattern matched no files: {path}")
             else:
-                LOG.warning("File not found: {0}".format(path))
+                LOG.warning(f"File not found: {path}")
 
     def _resolve_dump_include(self, pattern, parent):
         path = os.path.join(self.cwd, pattern)
@@ -280,18 +285,18 @@ class NginxParser(object):
         if not found:
             # Align behavior with nginx: unmatched glob patterns are not warnings
             if glob.has_magic(path):
-                LOG.debug("Include pattern matched no files: {0}".format(path))
+                LOG.debug(f"Include pattern matched no files: {path}")
             else:
-                LOG.warning("File not found: {0}".format(path))
+                LOG.warning(f"File not found: {path}")
 
     def _prepare_dump(self, parsed_block):
         filename = ""
         root_filename = ""
         for node in parsed_block:
-            if isinstance(node, dict) and node.get('kind') == 'file_delimiter':
+            if isinstance(node, dict) and node.get("kind") == "file_delimiter":
                 if not filename:
-                    root_filename = node.get('file')
-                filename = node.get('file')
+                    root_filename = node.get("file")
+                filename = node.get("file")
                 self.configs[filename] = []
                 continue
             self.configs[filename].append(node)

@@ -4,11 +4,12 @@ Module: test_cli.py
 This module demonstrates how to test Gixy's CLI using pytest.
 """
 
-import sys
 import subprocess
+import sys
 
 import pytest
-from gixy.cli.main import main, _get_cli_parser
+
+from gixy.cli.main import _get_cli_parser, main
 
 
 def test_cli_help(monkeypatch, capsys):
@@ -61,7 +62,7 @@ def test_cli_main_runs_with_plugin_options(monkeypatch):
             # mimic real Manager.stats structure expected by formatters
             import gixy as _gixy
 
-            self.stats = {severity: 0 for severity in _gixy.severity.ALL}
+            self.stats = dict.fromkeys(_gixy.severity.ALL, 0)
             # minimal results attribute consumed by formatters
             self.results = []
 
@@ -112,7 +113,7 @@ def test_cli_module_invocation_via_python_m():
         [sys.executable, "-m", "gixy.cli.main", "--help"],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        universal_newlines=True,  # Python 3.6 compatible (text=True requires 3.7+)
+        text=True,  # Python 3.6 compatible (text=True requires 3.7+)
     )
 
     assert completed.returncode == 0

@@ -1,11 +1,9 @@
-from __future__ import absolute_import
-
 import gixy
 from gixy.directives import block
-from gixy.directives.block import MapBlock, GeoBlock
+from gixy.directives.block import GeoBlock, MapBlock
 
 
-class BaseFormatter(object):
+class BaseFormatter:
     skip_parents = {block.Root, block.HttpBlock}
 
     def __init__(self):
@@ -21,65 +19,71 @@ class BaseFormatter(object):
 
         self.reports[path] = []
         for result in manager.results:
-            report = self._prepare_result(manager.root,
-                                          summary=result.summary,
-                                          severity=result.severity,
-                                          description=result.description,
-                                          issues=result.issues,
-                                          plugin=result.name,
-                                          help_url=result.help_url)
+            report = self._prepare_result(
+                manager.root,
+                summary=result.summary,
+                severity=result.severity,
+                description=result.description,
+                issues=result.issues,
+                plugin=result.name,
+                help_url=result.help_url,
+            )
             self.reports[path].extend(report)
 
     def flush(self):
         return self.format_reports(self.reports, self.stats)
 
-    def _prepare_result(self, root, issues, severity, summary, description, plugin, help_url):
+    def _prepare_result(
+        self, root, issues, severity, summary, description, plugin, help_url
+    ):
         result = {}
         for issue in issues:
-            report = dict(
-                plugin=plugin,
-                summary=issue.summary or summary,
-                severity=issue.severity or severity,
-                description=issue.description or description,
-                help_url=issue.help_url or help_url,
-                reason=issue.reason or '',
-            )
-            key = ''.join(report.values())
+            report = {
+                "plugin": plugin,
+                "summary": issue.summary or summary,
+                "severity": issue.severity or severity,
+                "description": issue.description or description,
+                "help_url": issue.help_url or help_url,
+                "reason": issue.reason or "",
+            }
+            key = "".join(report.values())
             expanded_directives = []
-            if any(isinstance(value, (MapBlock, GeoBlock)) for value in issue.directives):
+            if any(
+                isinstance(value, (MapBlock, GeoBlock)) for value in issue.directives
+            ):
                 for value in issue.directives:
                     if isinstance(value, (MapBlock, GeoBlock)):
                         expanded_directives.extend(value.children)
                     else:
                         expanded_directives.append(value)
                 issue.directives = expanded_directives
-            report['directives'] = issue.directives
+            report["directives"] = issue.directives
             if key in result:
-                result[key]['directives'].extend(report['directives'])
+                result[key]["directives"].extend(report["directives"])
             else:
                 result[key] = report
 
         for report in result.values():
-            if report['directives']:
-                config = self._resolve_config(root, report['directives'])
+            if report["directives"]:
+                config = self._resolve_config(root, report["directives"])
                 # Extract location info from first directive with line/file info
-                location = self._extract_location(report['directives'])
+                location = self._extract_location(report["directives"])
             else:
-                config = ''
+                config = ""
                 location = None
 
-            del report['directives']
-            report['config'] = config
-            report['location'] = location
+            del report["directives"]
+            report["config"] = config
+            report["location"] = location
             yield report
 
     def _extract_location(self, directives):
         """Extract file and line info from directives for display."""
         for directive in directives:
-            if hasattr(directive, 'line') and directive.line is not None:
+            if hasattr(directive, "line") and directive.line is not None:
                 return {
-                    'file': getattr(directive, 'file', None),
-                    'line': directive.line,
+                    "file": getattr(directive, "file", None),
+                    "line": directive.line,
                 }
         return None
 
@@ -90,7 +94,7 @@ class BaseFormatter(object):
             points.update(p for p in directive.parents)
 
         result = self._traverse_tree(root, points, 0)
-        return '\n'.join(result)
+        return "\n".join(result)
 
     def _traverse_tree(self, tree, points, level):
         result = []
@@ -104,13 +108,17 @@ class BaseFormatter(object):
 
             if printable:
                 if leap.is_block:
-                    result.append('')
-                directive = str(leap).replace('\n', '\n' + '\t' * (level + 1))
-                result.append('{indent:s}{dir:s}'.format(indent='\t' * level, dir=directive))
+                    result.append("")
+                directive = str(leap).replace("\n", "\n" + "\t" * (level + 1))
+                result.append(
+                    "{indent:s}{dir:s}".format(indent="\t" * level, dir=directive)
+                )
 
             if leap.is_block:
-                result.extend(self._traverse_tree(leap, points, level + 1 if printable else level))
+                result.extend(
+                    self._traverse_tree(leap, points, level + 1 if printable else level)
+                )
                 if printable and have_parentheses:
-                    result.append('{indent:s}}}'.format(indent='\t' * level))
+                    result.append("{indent:s}}}".format(indent="\t" * level))
 
         return result
