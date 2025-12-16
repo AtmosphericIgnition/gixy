@@ -215,7 +215,7 @@ class NotLiteralToken(Token):
         if self.can_contain(context.char):
             return context.char
 
-        return random.choice(self.gen_char_list)
+        return random.choice(self.gen_char_list)  # nosec B311 - test string generation, not crypto
 
     def __str__(self):
         return f"[^{self.char}]"
@@ -240,7 +240,7 @@ class RangeToken(Token):
         if self.can_contain(context.char):
             return context.char
 
-        return chr(random.randint(self.token[1][0], self.token[1][1]))
+        return chr(random.randint(self.token[1][0], self.token[1][1]))  # nosec B311 - test string generation, not crypto
 
     def __str__(self):
         return f"{self.left}-{self.right}"

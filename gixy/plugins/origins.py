@@ -183,10 +183,13 @@ class origins(Plugin):
             if prefix_mutant_raw.startswith("^"):
                 prefix_mutant_raw = prefix_mutant_raw.lstrip("^")
             else:
+                # NOSONAR - intentionally using http:// for security testing
                 if name == "referer":
-                    prefix_mutant_raw = "http://evil.com/?" + prefix_mutant_raw
+                    prefix_mutant_raw = (
+                        "http://evil.com/?" + prefix_mutant_raw
+                    )  # NOSONAR
                 else:
-                    prefix_mutant_raw = "http://evil.com" + prefix_mutant_raw
+                    prefix_mutant_raw = "http://evil.com" + prefix_mutant_raw  # NOSONAR
             prefix_mutant_parsed = self.parse_url(prefix_mutant_raw)
             if not prefix_mutant_parsed:
                 continue
@@ -306,7 +309,7 @@ class origins(Plugin):
                         ):
                             self.invalid_set.add(url)
                             self.insecure_set.remove(url)
-                except:
+                except:  # nosec B112 - continue on URL parse errors
                     continue
             if self.insecure_set:
                 invalids = '", "'.join(self.insecure_set).replace("`", "a")

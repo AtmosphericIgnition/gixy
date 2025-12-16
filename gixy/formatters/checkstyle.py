@@ -20,7 +20,7 @@ Example output:
     </checkstyle>
 """
 
-from xml.etree.ElementTree import Element, SubElement, tostring
+from xml.etree.ElementTree import Element, SubElement, tostring  # nosec B405 - generating XML, not parsing untrusted data
 
 from gixy.formatters.base import BaseFormatter
 

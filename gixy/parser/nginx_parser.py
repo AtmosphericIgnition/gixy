@@ -95,7 +95,7 @@ class NginxParser:
             if tmp_filename:
                 try:
                     os.unlink(tmp_filename)
-                except Exception:
+                except Exception:  # nosec B110 - cleanup, OK if unlink fails
                     pass
 
     # Backward-compatible alias (deprecated). Prefer parse_string.
