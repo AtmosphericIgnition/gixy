@@ -175,6 +175,23 @@ Total issues:
     High: 0
 
 ```
+
+## VS Code / Cursor Extension
+
+[![VS Code Marketplace](https://img.shields.io/visual-studio-marketplace/v/getpagespeed.gixy?label=VS%20Code%20Marketplace&logo=visualstudiocode&style=flat-square)](https://marketplace.visualstudio.com/items?itemName=getpagespeed.gixy)
+
+Get real-time NGINX security analysis directly in your editor!
+
+**[Install from VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=getpagespeed.gixy)**
+
+Or via command line:
+
+```bash
+code --install-extension getpagespeed.gixy
+```
+
+See [vscode-gixy](https://github.com/dvershinin/vscode-gixy) for full documentation.
+
 ## Kubernetes usage
 Given you are using the official NGINX ingress controller, not the kubernetes one, you can use this
 https://github.com/nginx/kubernetes-ingress
@@ -221,16 +238,6 @@ Total issues:
     High: 4
 
 ```
-
-## VS Code / Cursor Extension
-
-Get real-time NGINX security analysis directly in your editor:
-
-```bash
-code --install-extension getpagespeed.gixy
-```
-
-Or search "Gixy" in the Extensions panel. See [vscode-gixy](https://github.com/dvershinin/vscode-gixy) for details.
 
 # Contributing
 Contributions to Gixy are always welcome! You can help us in different ways:
