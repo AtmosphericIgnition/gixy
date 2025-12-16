@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.22] - 2024-12-16
+
+### Added
+- **Checkstyle XML output format**: New `-f checkstyle` formatter for CI/CD integration. Works natively with Jenkins, GitLab CI, GitHub Actions (reviewdog), Bitbucket Pipelines, and SonarQube. Maps severities: HIGH→error, MEDIUM→warning, LOW→info.
+- **Bandit security scanner**: Added to pre-commit for local security scanning before push.
+- **Hardcoded IP address check**: Custom pre-commit hook (`check_hardcoded_ips.py`) mirrors SonarCloud rule S1313 for local detection of hardcoded IPs.
+- **Path filters for CI**: GitHub Actions workflow now skips tests when only docs/configs change.
+
+### Changed
+- Documentation updated (en/ru/zh) to list `checkstyle` as available output format.
+
+### Fixed
+- Added `# NOSONAR` and `# nosec` comments to suppress false positives from security scanners (SonarCloud, Bandit) for intentional patterns like test URLs, Jinja2 autoescape for CLI output, and test IP addresses.
+
 ## [0.2.21] - 2024-12-12
 
 ### Fixed
