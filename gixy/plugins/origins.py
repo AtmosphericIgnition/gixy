@@ -183,7 +183,6 @@ class origins(Plugin):
             if prefix_mutant_raw.startswith("^"):
                 prefix_mutant_raw = prefix_mutant_raw.lstrip("^")
             else:
-                # NOSONAR - intentionally using http:// for security testing
                 if name == "referer":
                     prefix_mutant_raw = (
                         "http://evil.com/?" + prefix_mutant_raw
