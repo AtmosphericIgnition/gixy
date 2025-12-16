@@ -265,7 +265,7 @@ geo $some_var $some_other_var {
     assert directive.variable == "some_other_var"
     assert directive.children
     assert len(directive.children) == 2
-    assert [c.src_val for c in directive.children] == ["1.2.3.4", "default"]
+    assert [c.src_val for c in directive.children] == ["1.2.3.4", "default"]  # NOSONAR
     assert [c.dest_val for c in directive.children] == ["b", "c"]
 
 
