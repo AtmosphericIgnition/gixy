@@ -185,10 +185,14 @@ class origins(Plugin):
             else:
                 if name == "referer":
                     prefix_mutant_raw = (
-                        "http://evil.com/?" + prefix_mutant_raw
-                    )  # NOSONAR
+                        "http://evil.com/?"  # NOSONAR - intentional test URL
+                        + prefix_mutant_raw
+                    )
                 else:
-                    prefix_mutant_raw = "http://evil.com" + prefix_mutant_raw  # NOSONAR
+                    prefix_mutant_raw = (
+                        "http://evil.com"  # NOSONAR - intentional test URL
+                        + prefix_mutant_raw
+                    )
             prefix_mutant_parsed = self.parse_url(prefix_mutant_raw)
             if not prefix_mutant_parsed:
                 continue
