@@ -726,7 +726,9 @@ class AtToken(Token):
             return "^"
         if self.end:
             return "$"
-        LOG.warning("unexpected AT token: %s", self.token)
+        LOG.warning(
+            "unexpected AT token: %s", self.token
+        )  # nosemgrep: logger-credential-leak
 
 
 class NegateToken(Token):

@@ -20,7 +20,11 @@ Example output:
     </checkstyle>
 """
 
-from xml.etree.ElementTree import Element, SubElement, tostring  # nosec B405 - generating XML, not parsing untrusted data
+from xml.etree.ElementTree import (  # nosemgrep: use-defused-xml  # nosec B405
+    Element,
+    SubElement,
+    tostring,
+)  # We generate XML, not parse untrusted data
 
 from gixy.formatters.base import BaseFormatter
 

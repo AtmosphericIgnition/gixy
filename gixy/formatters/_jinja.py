@@ -6,6 +6,7 @@ from gixy.utils.text import to_text
 def load_template(name):
     # autoescape=False is safe here - these templates output plain text to terminal,
     # not HTML. Auto-escaping would incorrectly escape characters like < > &
+    # nosemgrep: python.jinja2.security.audit.autoescape-disabled-false
     env = Environment(  # NOSONAR # nosec B701 - plain text CLI, not HTML
         loader=PackageLoader("gixy", "formatters/templates"),
         trim_blocks=True,
