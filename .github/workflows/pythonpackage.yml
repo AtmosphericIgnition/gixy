@@ -1,6 +1,26 @@
 name: Python tests
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - 'gixy/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - '*.py'
+      - 'requirements*.txt'
+      - 'setup.cfg'
+      - 'pyproject.toml'
+      - '.github/workflows/pythonpackage.yml'
+  pull_request:
+    paths:
+      - 'gixy/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - '*.py'
+      - 'requirements*.txt'
+      - 'setup.cfg'
+      - 'pyproject.toml'
+      - '.github/workflows/pythonpackage.yml'
 
 jobs:
   # Check plugin help_url values and documentation
