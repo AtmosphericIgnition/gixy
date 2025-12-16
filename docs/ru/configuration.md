@@ -43,7 +43,7 @@ url = ^/api/.*
 
 ### Другие полезные параметры
 
-- Формат вывода: `format = console|text|json` (то же, что `-f/--format`)
+- Формат вывода: `format = console|text|json|checkstyle` (то же, что `-f/--format`)
 - Запись отчёта в файл: `output = /path/to/report.txt` (то же, что `-o/--output`)
 - Отключить обработку include: `disable-includes = true` (то же, что `--disable-includes`)
 - Каталоги кастомных переменных: `vars-dirs = [/etc/gixy/vars, ~/.config/gixy/vars]` (см. «Пользовательские переменные (drop-ins)»)

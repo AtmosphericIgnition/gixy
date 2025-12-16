@@ -43,7 +43,7 @@ url = ^/api/.*
 
 ### 其他常用选项
 
-- 输出格式：`format = console|text|json`（等同 `-f/--format`）
+- 输出格式：`format = console|text|json|checkstyle`（等同 `-f/--format`）
 - 写报告到文件：`output = /path/to/report.txt`（等同 `-o/--output`）
 - 禁用 include 处理：`disable-includes = true`（等同 `--disable-includes`）
 - 自定义变量目录：`vars-dirs = [/etc/gixy/vars, ~/.config/gixy/vars]`（详见“自定义变量扩展”）
