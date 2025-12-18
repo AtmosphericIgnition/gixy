@@ -24,35 +24,47 @@ Disclaimer: Gixy is well tested only on GNU/Linux, other OSs may have some issue
 
 # What it can do
 
-Right now Gixy can find:
+Gixy detects a wide range of security issues across these categories:
 
-*   [[ssrf] Server Side Request Forgery](https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/ssrf.md)
-*   [[http_splitting] HTTP Splitting](https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/httpsplitting.md)
-*   [[origins] Problems with referrer/origin validation](https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/origins.md)
-*   [[add_header_redefinition] Redefining of response headers by  "add_header" directive](https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/addheaderredefinition.md)
-*   [[host_spoofing] Request's Host header forgery](https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/hostspoofing.md)
-*   [[valid_referers] none in valid_referers](https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/validreferers.md)
-*   [[add_header_multiline] Multiline response headers](https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/addheadermultiline.md)
-*   [[alias_traversal] Path traversal via misconfigured alias](https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/aliastraversal.md)
-*   [[if_is_evil] If is evil when used in location context](https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/if_is_evil.md)
-*   [[allow_without_deny] Allow specified without deny](https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/allow_without_deny.md)
-*   [[add_header_content_type] Setting Content-Type via add_header](https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/add_header_content_type.md)
-*   [[default_server_flag] Missing default_server on shared listen socket](https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/default_server_flag.md)
-*   [[hash_without_default] Missing default in hash blocks (map, geo)](https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/hash_without_default.md)
-*   [[resolver_external] Using external DNS nameservers](https://gixy.getpagespeed.com/en/plugins/resolver_external/)
-*   [[return_bypasses_allow_deny] Return directive bypasses allow/deny restrictions](https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/return_bypasses_allow_deny.md)
-*   [[version_disclosure] Using insecure values for server_tokens](https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/version_disclosure.md)
-*   [[try_files_is_evil_too] The `try_files` directive is evil without open_file_cache](https://www.getpagespeed.com/server-setup/nginx-try_files-is-evil-too)
-*   [[proxy_pass_normalized] `proxy_pass` will decode and normalize paths when specified with a path](https://gixy.getpagespeed.com/en/plugins/proxy_pass_normalized/)
-*   [[worker_rlimit_nofile_vs_connections] `worker_rlimit_nofile` must be at least twice `worker_connections`](https://gixy.getpagespeed.com/en/plugins/worker_rlimit_nofile_vs_connections/)
-*   [[error_log_off] `error_log` set to `off`](https://gixy.getpagespeed.com/en/plugins/error_log_off/)
-*   [[unanchored_regex] Regular expression without anchors](https://gixy.getpagespeed.com/en/plugins/unanchored_regex/)
-*   [[regex_redos] Regular expressions may result in easy denial-of-service (ReDoS) attacks](https://gixy.getpagespeed.com/en/plugins/regex_redos/)
-*   [[invalid_regex] Using a nonexistent regex capture group](https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/invalid_regex.md)
-*   [[low_keepalive_requests] Low `keepalive_requests` value can cause performance issues](https://gixy.getpagespeed.com/en/plugins/low_keepalive_requests/)
-*   [[missing_resolver] Missing `resolver` directive for dynamic upstreams](https://gixy.getpagespeed.com/en/plugins/missing_resolver/)
+| Category | Security Checks |
+|----------|-----------------|
+| 🔓 **Injection & Forgery** | [SSRF][ssrf] &#183; [HTTP Splitting][http_splitting] &#183; [Host Spoofing][host_spoofing] &#183; [Origin Bypass][origins] |
+| 🔐 **TLS & Encryption** | [Weak SSL/TLS][weak_ssl_tls] &#183; [Version Disclosure][version_disclosure] |
+| 📂 **Path Traversal** | [Alias Traversal][alias_traversal] &#183; [Proxy Pass Normalized][proxy_pass_normalized] |
+| 📋 **Header Security** | [Header Redefinition][add_header_redefinition] &#183; [Multiline Headers][add_header_multiline] &#183; [Content-Type via add_header][add_header_content_type] |
+| 🚦 **Access Control** | [Allow Without Deny][allow_without_deny] &#183; [Return Bypasses ACL][return_bypasses_allow_deny] &#183; [Valid Referers][valid_referers] |
+| 🌐 **DNS & Resolver** | [External Resolver][resolver_external] &#183; [Missing Resolver][missing_resolver] |
+| ⚙️ **Config & Performance** | [ReDoS][regex_redos] &#183; [Unanchored Regex][unanchored_regex] &#183; [Invalid Regex][invalid_regex] &#183; [If Is Evil][if_is_evil] &#183; [Try Files Evil][try_files_is_evil_too] &#183; [Default Server][default_server_flag] &#183; [Hash Default][hash_without_default] &#183; [Error Log Off][error_log_off] &#183; [Worker Limits][worker_rlimit_nofile_vs_connections] &#183; [Low Keepalive][low_keepalive_requests] |
 
-You can find things that Gixy is learning to detect at [Issues labeled with "new plugin"](https://github.com/dvershinin/gixy/issues?q=is%3Aissue+is%3Aopen+label%3A%22new+plugin%22)
+[📖 **Full documentation →**](https://gixy.getpagespeed.com/plugins/) &#183; [🆕 Upcoming checks](https://github.com/dvershinin/gixy/issues?q=is%3Aissue+is%3Aopen+label%3A%22new+plugin%22)
+
+<!-- Plugin reference links -->
+[ssrf]: https://gixy.getpagespeed.com/plugins/ssrf/
+[http_splitting]: https://gixy.getpagespeed.com/plugins/httpsplitting/
+[host_spoofing]: https://gixy.getpagespeed.com/plugins/hostspoofing/
+[origins]: https://gixy.getpagespeed.com/plugins/origins/
+[weak_ssl_tls]: https://gixy.getpagespeed.com/plugins/weak_ssl_tls/
+[version_disclosure]: https://gixy.getpagespeed.com/plugins/version_disclosure/
+[alias_traversal]: https://gixy.getpagespeed.com/plugins/aliastraversal/
+[proxy_pass_normalized]: https://gixy.getpagespeed.com/plugins/proxy_pass_normalized/
+[add_header_redefinition]: https://gixy.getpagespeed.com/plugins/addheaderredefinition/
+[add_header_multiline]: https://gixy.getpagespeed.com/plugins/addheadermultiline/
+[add_header_content_type]: https://gixy.getpagespeed.com/plugins/add_header_content_type/
+[allow_without_deny]: https://gixy.getpagespeed.com/plugins/allow_without_deny/
+[return_bypasses_allow_deny]: https://gixy.getpagespeed.com/plugins/return_bypasses_allow_deny/
+[valid_referers]: https://gixy.getpagespeed.com/plugins/validreferers/
+[resolver_external]: https://gixy.getpagespeed.com/plugins/resolver_external/
+[missing_resolver]: https://gixy.getpagespeed.com/plugins/missing_resolver/
+[regex_redos]: https://gixy.getpagespeed.com/plugins/regex_redos/
+[unanchored_regex]: https://gixy.getpagespeed.com/plugins/unanchored_regex/
+[invalid_regex]: https://gixy.getpagespeed.com/plugins/invalid_regex/
+[if_is_evil]: https://gixy.getpagespeed.com/plugins/if_is_evil/
+[try_files_is_evil_too]: https://gixy.getpagespeed.com/plugins/try_files_is_evil_too/
+[default_server_flag]: https://gixy.getpagespeed.com/plugins/default_server_flag/
+[hash_without_default]: https://gixy.getpagespeed.com/plugins/hash_without_default/
+[error_log_off]: https://gixy.getpagespeed.com/plugins/error_log_off/
+[worker_rlimit_nofile_vs_connections]: https://gixy.getpagespeed.com/plugins/worker_rlimit_nofile_vs_connections/
+[low_keepalive_requests]: https://gixy.getpagespeed.com/plugins/low_keepalive_requests/
 
 # Installation
 
@@ -117,6 +129,38 @@ Total issues:
     Medium: 0
     High: 0
 ```
+
+### Auto-fix mode 🔧
+
+Gixy can automatically fix many issues it detects:
+
+```bash
+# Preview what fixes would be applied (dry run)
+$ gixy --fix-dry-run /etc/nginx/nginx.conf
+
+🔍 Dry run - showing fixes that would be applied:
+
+📝 /etc/nginx/nginx.conf
+   [Insecure TLS protocols enabled]
+   🔧 Use only TLSv1.2 and TLSv1.3
+   - ssl_protocols TLSv1 TLSv1.1
+   + ssl_protocols TLSv1.2 TLSv1.3
+
+📊 1 fix(es) available to apply.
+   Run with --fix to apply them.
+```
+
+```bash
+# Apply fixes (creates .bak backup files)
+$ gixy --fix /etc/nginx/nginx.conf
+
+✅ Applied 1 fix(es) to /etc/nginx/nginx.conf
+
+🎉 Applied 1 fix(es) successfully!
+   Backup files created with .bak extension.
+```
+
+Use `--no-backup` to skip creating backup files.
 
 Or something else, you can find all other `gixy` arguments with the help command: `gixy --help`
 

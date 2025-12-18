@@ -17,6 +17,123 @@ from gixy.formatters import get_all as formatters
 LOG = logging.getLogger()
 
 
+def _apply_fixes(reports, dry_run=False, create_backup=True):
+    """Apply fixes from the reports to the configuration files.
+
+    Args:
+        reports: Dict mapping file paths to lists of issue reports.
+        dry_run: If True, only show what would be changed without modifying files.
+        create_backup: If True, create .bak backup files before modifying.
+
+    Returns:
+        Tuple of (fixes_applied, fixes_failed).
+    """
+    fixes_applied = 0
+    fixes_failed = 0
+
+    # Group fixes by file
+    fixes_by_file = {}
+    for path, issues in reports.items():
+        if path == "-" or path == "<stdin>":
+            # Can't fix stdin
+            continue
+
+        for issue in issues:
+            if "fixes" not in issue or not issue["fixes"]:
+                continue
+
+            # Get the actual file from location if available
+            location = issue.get("location", {})
+            file_path = location.get("file") if location else None
+
+            # Fall back to the report path
+            if not file_path:
+                file_path = path
+
+            if file_path not in fixes_by_file:
+                fixes_by_file[file_path] = []
+
+            # Take the first (preferred) fix for each issue
+            fix = issue["fixes"][0]
+            fix["issue_summary"] = issue.get("summary", "Unknown issue")
+            fix["line"] = location.get("line") if location else None
+            fixes_by_file[file_path].append(fix)
+
+    if not fixes_by_file:
+        sys.stderr.write("No fixes available to apply.\n")
+        return 0, 0
+
+    # Apply fixes to each file
+    for file_path, fixes in fixes_by_file.items():
+        if not os.path.exists(file_path):
+            sys.stderr.write(f"⚠️  File not found: {file_path}\n")
+            fixes_failed += len(fixes)
+            continue
+
+        try:
+            with open(file_path, encoding="utf-8") as f:
+                content = f.read()
+        except OSError as e:
+            sys.stderr.write(f"⚠️  Cannot read {file_path}: {e}\n")
+            fixes_failed += len(fixes)
+            continue
+
+        original_content = content
+        file_fixes_applied = 0
+
+        for fix in fixes:
+            search = fix.get("search", "")
+            replace = fix.get("replace", "")
+            title = fix.get("title", "Fix")
+            summary = fix.get("issue_summary", "")
+
+            if not search:
+                continue
+
+            if search in content:
+                if dry_run:
+                    sys.stdout.write(f"📝 {file_path}\n")
+                    sys.stdout.write(f"   [{summary}]\n")
+                    sys.stdout.write(f"   🔧 {title}\n")
+                    sys.stdout.write(f"   - {search}\n")
+                    sys.stdout.write(f"   + {replace}\n\n")
+                else:
+                    content = content.replace(search, replace, 1)
+                file_fixes_applied += 1
+            else:
+                # Search pattern not found - might already be fixed or config changed
+                pass
+
+        if file_fixes_applied > 0:
+            if not dry_run:
+                # Create backup if requested
+                if create_backup:
+                    backup_path = file_path + ".bak"
+                    try:
+                        with open(backup_path, "w", encoding="utf-8") as f:
+                            f.write(original_content)
+                    except OSError as e:
+                        sys.stderr.write(
+                            f"⚠️  Cannot create backup {backup_path}: {e}\n"
+                        )
+
+                # Write the fixed content
+                try:
+                    with open(file_path, "w", encoding="utf-8") as f:
+                        f.write(content)
+                    sys.stdout.write(
+                        f"✅ Applied {file_fixes_applied} fix(es) to {file_path}\n"
+                    )
+                    fixes_applied += file_fixes_applied
+                except OSError as e:
+                    sys.stderr.write(f"❌ Cannot write {file_path}: {e}\n")
+                    fixes_failed += file_fixes_applied
+            else:
+                fixes_applied += file_fixes_applied
+
+    return fixes_applied, fixes_failed
+
+
 def _init_logger(debug=False):
     LOG.handlers = []
     log_level = logging.DEBUG if debug else logging.INFO
@@ -159,6 +276,30 @@ def _get_cli_parser():
         help="Comma-separated list of directories with custom variable drop-ins",
     )
 
+    parser.add_argument(
+        "--fix",
+        dest="fix",
+        action="store_true",
+        default=False,
+        help="Automatically apply suggested fixes to configuration files",
+    )
+
+    parser.add_argument(
+        "--fix-dry-run",
+        dest="fix_dry_run",
+        action="store_true",
+        default=False,
+        help="Show what fixes would be applied without modifying files",
+    )
+
+    parser.add_argument(
+        "--no-backup",
+        dest="no_backup",
+        action="store_true",
+        default=False,
+        help="Don't create .bak backup files when applying fixes (use with --fix)",
+    )
+
     group = parser.add_argument_group("plugins options")
     for plugin_cls in PluginsManager().plugins_classes:
         name = plugin_cls.__name__
@@ -281,11 +422,58 @@ def main():
             formatter.feed(path, yoda)
             failed = failed or sum(yoda.stats.values()) > 0
 
-    if args.output_file:
-        with open(config.output_file, "w") as f:
-            f.write(formatter.flush())
+    # Handle fix mode
+    if args.fix or args.fix_dry_run:
+        if args.fix and args.fix_dry_run:
+            sys.stderr.write("Cannot use both --fix and --fix-dry-run\n")
+            sys.exit(1)
+
+        if "-" in nginx_files:
+            sys.stderr.write("Cannot use --fix with stdin input\n")
+            sys.exit(1)
+
+        if args.fix_dry_run:
+            sys.stdout.write("\n🔍 Dry run - showing fixes that would be applied:\n\n")
+
+        fixes_applied, fixes_failed = _apply_fixes(
+            formatter.reports,
+            dry_run=args.fix_dry_run,
+            create_backup=not args.no_backup,
+        )
+
+        if args.fix_dry_run:
+            if fixes_applied > 0:
+                sys.stdout.write(f"\n📊 {fixes_applied} fix(es) available to apply.\n")
+                sys.stdout.write("   Run with --fix to apply them.\n")
+            else:
+                sys.stdout.write("No fixes available.\n")
+        else:
+            if fixes_applied > 0:
+                sys.stdout.write(
+                    f"\n🎉 Applied {fixes_applied} fix(es) successfully!\n"
+                )
+                if not args.no_backup:
+                    sys.stdout.write("   Backup files created with .bak extension.\n")
+            if fixes_failed > 0:
+                sys.stdout.write(f"⚠️  {fixes_failed} fix(es) could not be applied.\n")
+
+        # Print the report after fix summary
+        if args.output_file:
+            with open(config.output_file, "w") as f:
+                f.write(formatter.flush())
+        else:
+            print(formatter.flush())
+
+        # Exit with success if fixes were applied, even if issues were found
+        if args.fix and fixes_applied > 0 and fixes_failed == 0:
+            sys.exit(0)
     else:
-        print(formatter.flush())
+        # Normal mode - just print results
+        if args.output_file:
+            with open(config.output_file, "w") as f:
+                f.write(formatter.flush())
+        else:
+            print(formatter.flush())
 
     if failed:
         # If something found - exit code must be 1, otherwise 0

@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.23] - 2024-12-19
+
+### Added
+- **New plugin: `weak_ssl_tls`**: Detects weak SSL/TLS configurations including:
+  - Insecure protocols (SSLv2, SSLv3, TLSv1, TLSv1.1)
+  - Weak cipher suites (NULL, DES, RC4, EXPORT, etc.)
+  - Missing or weak HSTS headers
+  - `ssl_prefer_server_ciphers off` configuration
+- **Auto-fix mode**: New `--fix` and `--fix-dry-run` CLI options to automatically apply fixes for detected issues. Creates `.bak` backup files by default (disable with `--no-backup`).
+- **Python 3.6 pre-commit check**: Full test suite now runs with Python 3.6 on every commit to ensure compatibility with minimum supported version.
+- **README overhaul**: Reorganized plugin documentation into categorized table format with links to official docs.
+
+### Changed
+- `scripts/test_py36.sh` now runs the full test suite instead of a subset of tests.
+
+### Fixed
+- Added missing HSTS header to staging server in `wordpress_production.conf` integration test.
+
 ## [0.2.22] - 2024-12-16
 
 ### Added

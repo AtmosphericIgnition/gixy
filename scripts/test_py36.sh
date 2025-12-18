@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run critical tests with Python 3.6 to catch compatibility issues
+# Run full test suite with Python 3.6 to catch compatibility issues
 # This hook is optional - it only runs if ~/.virtualenvs/gixy-py36 exists
 
 PY36_VENV="$HOME/.virtualenvs/gixy-py36"
@@ -10,13 +10,10 @@ if [ ! -d "$PY36_VENV" ]; then
     exit 0
 fi
 
-echo "🐍 Running critical tests with Python 3.6..."
+echo "🐍 Running full test suite with Python 3.6..."
 
-# Run a subset of tests that are most likely to catch Py3.6 compat issues
-"$PY36_VENV/bin/python" -m pytest \
-    tests/cli/test_cli.py::test_cli_module_invocation_via_python_m \
-    tests/cli/test_cli.py::test_cli_main_runs_with_plugin_options \
-    -v --tb=short 2>&1
+# Run full test suite with Python 3.6
+"$PY36_VENV/bin/python" -m pytest tests/ -v --tb=short 2>&1
 
 exit_code=$?
 
