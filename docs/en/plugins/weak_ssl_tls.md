@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `weak_ssl_tls` plugin detects insecure SSL/TLS configurations that may compromise the security of encrypted connections. This includes outdated protocols, weak cipher suites, and missing security headers.
+The `weak_ssl_tls` plugin detects insecure SSL/TLS configurations that may compromise the security of encrypted connections. This includes outdated protocols, weak cipher suites, and client-driven cipher selection.
 
 ## What it detects
 
@@ -31,15 +31,6 @@ Detects cipher suites that should be avoided:
 ### 3. Server Cipher Preference
 Detects when `ssl_prefer_server_ciphers` is disabled, allowing clients to choose potentially weaker ciphers.
 
-### 4. Missing HSTS Header
-Detects SSL servers missing the `Strict-Transport-Security` header, which protects against:
-- Protocol downgrade attacks
-- Cookie hijacking
-- Man-in-the-middle attacks
-
-### 5. Weak HSTS Configuration
-Detects HSTS headers with `max-age` less than 6 months (15768000 seconds).
-
 ## Examples
 
 ### ❌ Bad: Insecure protocols enabled
@@ -60,16 +51,6 @@ server {
 ```
 **Issue**: `Weak ciphers found: RC4, DES, 3DES`
 
-### ❌ Bad: Missing HSTS
-```nginx
-server {
-    listen 443 ssl;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    # Missing: add_header Strict-Transport-Security
-}
-```
-**Issue**: `Missing HSTS header`
-
 ### ✅ Good: Secure configuration
 ```nginx
 server {
@@ -84,8 +65,7 @@ server {
     # Server chooses cipher
     ssl_prefer_server_ciphers on;
 
-    # HSTS with 1 year max-age
-    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    # HSTS is checked by the dedicated `hsts_header` plugin.
 }
 ```
 
@@ -104,19 +84,6 @@ ssl_prefer_server_ciphers off;
 ```nginx
 ssl_protocols TLSv1.3;
 ssl_prefer_server_ciphers off;
-```
-
-## HSTS Best Practices
-
-```nginx
-# Basic HSTS (1 year)
-add_header Strict-Transport-Security "max-age=31536000" always;
-
-# With subdomains
-add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-
-# Preload ready (requires HTTPS on all subdomains)
-add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
 ```
 
 ## Why This Matters

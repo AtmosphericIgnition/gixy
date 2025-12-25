@@ -1,6 +1,5 @@
 """Tests for Issue and Fix classes."""
 
-
 from gixy.core.issue import Fix, Issue
 
 

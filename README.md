@@ -29,9 +29,9 @@ Gixy detects a wide range of security issues across these categories:
 | Category | Security Checks |
 |----------|-----------------|
 | 🔓 **Injection & Forgery** | [SSRF][ssrf] &#183; [HTTP Splitting][http_splitting] &#183; [Host Spoofing][host_spoofing] &#183; [Origin Bypass][origins] |
-| 🔐 **TLS & Encryption** | [Weak SSL/TLS][weak_ssl_tls] &#183; [Version Disclosure][version_disclosure] |
+| 🔐 **TLS & Encryption** | [Weak SSL/TLS][weak_ssl_tls] &#183; [HTTP/2 Misdirected Request][http2_misdirected_request] &#183; [Version Disclosure][version_disclosure] |
 | 📂 **Path Traversal** | [Alias Traversal][alias_traversal] &#183; [Proxy Pass Normalized][proxy_pass_normalized] |
-| 📋 **Header Security** | [Header Redefinition][add_header_redefinition] &#183; [Multiline Headers][add_header_multiline] &#183; [Content-Type via add_header][add_header_content_type] |
+| 📋 **Header Security** | [HSTS Header][hsts_header] &#183; [Header Redefinition][add_header_redefinition] &#183; [Multiline Headers][add_header_multiline] &#183; [Content-Type via add_header][add_header_content_type] |
 | 🚦 **Access Control** | [Allow Without Deny][allow_without_deny] &#183; [Return Bypasses ACL][return_bypasses_allow_deny] &#183; [Valid Referers][valid_referers] |
 | 🌐 **DNS & Resolver** | [External Resolver][resolver_external] &#183; [Missing Resolver][missing_resolver] |
 | ⚙️ **Config & Performance** | [ReDoS][regex_redos] &#183; [Unanchored Regex][unanchored_regex] &#183; [Invalid Regex][invalid_regex] &#183; [If Is Evil][if_is_evil] &#183; [Try Files Evil][try_files_is_evil_too] &#183; [Default Server][default_server_flag] &#183; [Hash Default][hash_without_default] &#183; [Error Log Off][error_log_off] &#183; [Worker Limits][worker_rlimit_nofile_vs_connections] &#183; [Low Keepalive][low_keepalive_requests] |
@@ -44,6 +44,8 @@ Gixy detects a wide range of security issues across these categories:
 [host_spoofing]: https://gixy.getpagespeed.com/plugins/hostspoofing/
 [origins]: https://gixy.getpagespeed.com/plugins/origins/
 [weak_ssl_tls]: https://gixy.getpagespeed.com/plugins/weak_ssl_tls/
+[http2_misdirected_request]: https://gixy.getpagespeed.com/plugins/http2_misdirected_request/
+[hsts_header]: https://gixy.getpagespeed.com/plugins/hsts_header/
 [version_disclosure]: https://gixy.getpagespeed.com/plugins/version_disclosure/
 [alias_traversal]: https://gixy.getpagespeed.com/plugins/aliastraversal/
 [proxy_pass_normalized]: https://gixy.getpagespeed.com/plugins/proxy_pass_normalized/

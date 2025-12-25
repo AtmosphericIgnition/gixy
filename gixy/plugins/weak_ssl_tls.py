@@ -4,7 +4,6 @@ Plugin to detect weak SSL/TLS configurations in NGINX.
 Checks for:
 - Outdated protocols (SSLv2, SSLv3, TLSv1, TLSv1.1)
 - Weak cipher suites
-- Missing HSTS headers
 - Insecure ssl_prefer_server_ciphers settings
 """
 
@@ -76,7 +75,7 @@ class weak_ssl_tls(Plugin):
     Detects weak SSL/TLS configurations that may compromise security.
 
     Checks ssl_protocols, ssl_ciphers, ssl_prefer_server_ciphers,
-    and HSTS header presence.
+    and basic server-level TLS hardening.
     """
 
     summary = "Weak SSL/TLS configuration detected"
@@ -270,66 +269,4 @@ class weak_ssl_tls(Plugin):
                     ],
                 )
 
-            # Check for missing HSTS header
-            self._check_hsts(server_block)
-
-    def _check_hsts(self, server_block):
-        """Check for missing or weak HSTS configuration."""
-        # Look for add_header Strict-Transport-Security
-        has_hsts = False
-        for add_header in server_block.find("add_header"):
-            if (
-                add_header.args
-                and add_header.args[0].lower() == "strict-transport-security"
-            ):
-                has_hsts = True
-                # Check HSTS configuration quality
-                if len(add_header.args) > 1:
-                    hsts_value = add_header.args[1].lower()
-                    # Check for low max-age
-                    if "max-age=" in hsts_value:
-                        try:
-                            # Extract max-age value
-                            import re
-
-                            match = re.search(r"max-age=(\d+)", hsts_value)
-                            if match:
-                                max_age = int(match.group(1))
-                                # Less than 6 months is considered weak
-                                if max_age < 15768000:
-                                    self.add_issue(
-                                        severity=gixy.severity.LOW,
-                                        directive=[add_header, server_block],
-                                        summary="HSTS max-age too short",
-                                        reason=f"HSTS max-age is {max_age} seconds "
-                                        f"({max_age // 86400} days). "
-                                        "Recommended minimum is 6 months (15768000 seconds).",
-                                        fixes=[
-                                            self.make_fix(
-                                                title="Set HSTS max-age to 1 year",
-                                                search=f"max-age={max_age}",
-                                                replace="max-age=31536000",
-                                                description="Use 1 year (31536000 seconds) for HSTS max-age",
-                                            ),
-                                        ],
-                                    )
-                        except (ValueError, AttributeError):
-                            pass
-                break
-
-        if not has_hsts:
-            self.add_issue(
-                severity=gixy.severity.MEDIUM,
-                directive=[server_block],
-                summary="Missing HSTS header",
-                reason="No Strict-Transport-Security header found. "
-                "HSTS protects against protocol downgrade attacks and cookie hijacking.",
-                fixes=[
-                    self.make_fix(
-                        title="Add HSTS header",
-                        search="server {",
-                        replace='server {\n    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;',
-                        description="Add HSTS header with 1 year max-age",
-                    ),
-                ],
-            )
+            # HSTS checks are handled by the dedicated `hsts_header` plugin.

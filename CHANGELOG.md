@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.24] - 2025-12-25
+
+### Added
+- **New plugin: `hsts_header`**: Detects missing or weak `Strict-Transport-Security` (HSTS) configuration on HTTPS servers.
+- **New plugin: `http2_misdirected_request`**: Detects `default_server` + HTTP/2 + `ssl_reject_handshake on` setups missing a defensive `location / { return 421; }`.
+
+### Changed
+- **`weak_ssl_tls` scope clarified**: HSTS checks were moved out to `hsts_header` (TLS protocols/ciphers and cipher preference remain in `weak_ssl_tls`).
+
+### Fixed
+- **HSTS false positives**: HSTS checks now correctly skip `ssl_reject_handshake on;` servers (they cannot emit HTTP response headers).
+
 ## [0.2.23] - 2024-12-19
 
 ### Added
