@@ -28,7 +28,6 @@ class hsts_header(Plugin):
         "downgrade attacks and cookie hijacking by forcing browsers to use HTTPS "
         "for a host once it has been seen over HTTPS."
     )
-    help_url = "https://gixy.getpagespeed.com/plugins/hsts_header/"
     directives = []
     supports_full_config = True
 

@@ -16,7 +16,6 @@ class default_server_flag(Plugin):
         "should be marked with the 'default_server' (or 'default') flag to "
         "avoid ambiguity about which server handles unmatched requests."
     )
-    help_url = "https://gixy.getpagespeed.com/plugins/default_server_flag/"
     directives = []
     supports_full_config = True
 

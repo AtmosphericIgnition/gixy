@@ -1,4 +1,11 @@
-### Configuration (gixy.cfg)
+---
+title: "Configuration & Usage Guide"
+description: "Configure Gixy to fit your workflow: tune checks, CLI options, and variable drop-ins for sharper NGINX security scans."
+---
+
+# Configuration & Usage Guide
+
+## Configuration (gixy.cfg)
 
 Gixy reads configuration from the following locations (first found wins):
 
@@ -11,24 +18,24 @@ Configuration files use simple `key = value` pairs, optional sections, and suppo
 
 Note: the severity filter is CLI-only via `-l` repeats (e.g. `-l`, `-ll`, `-lll`). It is not read from the config file.
 
-### Managing plugins
+## Managing Enabled Checks
 
-- **Run only selected plugins**: set `tests` to a comma-separated list of plugin class names.
-- **Skip specific plugins**: set `skips` to a comma-separated list of plugin class names.
+- **Run only selected checks**: set `checks` to a comma-separated list of check names (you can also use the legacy `tests` key for backward compatibility).
+- **Skip specific checks**: set `skips` to a comma-separated list of check names.
 
 Examples:
 
 ```ini
-# Only these plugins will run
-tests = if_is_evil, http_splitting
+# Only these checks will run
+checks = if_is_evil, http_splitting
 
-# These plugins will be excluded from the run
+# These checks will be excluded from the run
 skips = origins, version_disclosure
 ```
 
-### Plugin-specific options
+## Check-specific Options
 
-Plugin options can be provided as sectioned keys where the section name is the plugin class name written with hyphens (underscores replaced by hyphens). Keys inside sections also use hyphens. Examples:
+Check options can be provided as sectioned keys where the section name is the check name written with hyphens (underscores replaced by hyphens). Keys inside sections also use hyphens. Examples:
 
 ```ini
 [origins]
@@ -39,16 +46,16 @@ https-only = true
 url = ^/api/.*
 ```
 
-The same effect can be achieved without sections by combining the plugin name and option with a dash, e.g. `origins-domains = ...`, but sections are easier to organize.
+The same effect can be achieved without sections by combining the check name and option with a dash, e.g. `origins-domains = ...`, but sections are easier to organize.
 
-### Other useful options
+## Other Useful Options
 
 - **Output format**: `format = console|text|json|checkstyle` (same as `-f/--format`)
 - **Write report to file**: `output = /path/to/report.txt` (same as `-o/--output`)
 - **Disable include processing**: `disable-includes = true` (same as `--disable-includes`)
-- **Custom variables directories**: `vars-dirs = [/etc/gixy/vars, ~/.config/gixy/vars]` (see “Custom variables drop-ins”)
+- **Custom variables directories**: `vars-dirs = [/etc/gixy/vars, ~/.config/gixy/vars]` (see "Custom variables drop-ins")
 
-### Full example
+## Full Example
 
 ```ini
 # gixy.cfg
@@ -57,10 +64,10 @@ format = console
 output = /tmp/gixy-report.txt
 disable-includes = false
 
-# Limit analysis to a subset of plugins
-tests = if_is_evil, http_splitting
+# Limit analysis to a subset of checks
+checks = if_is_evil, http_splitting
 
-# Skip some plugins
+# Skip some checks
 skips = version_disclosure
 
 # Load custom variable definitions (see variables-dropins)

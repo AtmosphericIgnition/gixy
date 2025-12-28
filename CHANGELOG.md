@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.25] - 2025-12-28
+
+### Changed
+- **Terminology**: User-facing documentation now uses "checks" instead of "plugins" for clarity and consistency.
+- **CLI**: `--checks` is now the primary flag for selecting checks to run (`--tests` remains as a backward-compatible alias).
+- **Configuration**: Config files now prefer `checks = ...` over `tests = ...` (both still work for backward compatibility).
+- **Help URLs**: Plugin help URLs are now auto-generated from class names using kebab-case slugs (e.g., `http_splitting` → `/checks/http-splitting/`).
+- **Documentation URLs**: All check documentation moved from `/plugins/` to `/checks/` path with kebab-case naming.
+
+### Fixed
+- **Pre-commit hooks**: Removed hardcoded filesystem paths; hooks now work in any environment.
+- **Documentation front-matter**: Fixed missing/short SEO metadata in Chinese documentation files.
+
+### Developer
+- Plugin base class now auto-generates `help_url` property from class name (no manual URL definition needed).
+- Plugins can override with `_help_url` class attribute for external documentation links.
+- Pre-commit check validates documentation file existence instead of URL format.
+
 ## [0.2.24] - 2025-12-25
 
 ### Added

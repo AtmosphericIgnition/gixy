@@ -28,7 +28,6 @@ class http2_misdirected_request(Plugin):
         "even when `ssl_reject_handshake` is used. Returning 421 (Misdirected Request) "
         "in `location /` provides a deterministic, safe response."
     )
-    help_url = "https://gixy.getpagespeed.com/plugins/http2_misdirected_request/"
     directives = []
     supports_full_config = True
 

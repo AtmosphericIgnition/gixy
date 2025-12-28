@@ -85,7 +85,6 @@ class weak_ssl_tls(Plugin):
         "exposes your server to attacks such as POODLE, BEAST, and SWEET32. "
         "Modern configurations should use TLSv1.2+ with strong AEAD ciphers."
     )
-    help_url = "https://gixy.getpagespeed.com/plugins/weak_ssl_tls/"
     directives = ["ssl_protocols", "ssl_ciphers", "ssl_prefer_server_ciphers"]
     supports_full_config = True
 

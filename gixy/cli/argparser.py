@@ -88,12 +88,12 @@ class GixyHelpFormatter(HelpFormatter):
     def format_help(self):
         manager = PluginsManager()
         help_message = super(GixyHelpFormatter, self).format_help()
-        if "plugins options:" in help_message:
-            # Print available blugins _only_ if we prints options for it
-            plugins = "\n".join(
+        if "check options:" in help_message:
+            # Print available checks _only_ if we print options for them
+            checks = "\n".join(
                 "\t" + plugin.__name__ for plugin in manager.plugins_classes
             )
-            help_message = f"{help_message}\n\navailable plugins:\n{plugins}\n"
+            help_message = f"{help_message}\n\navailable checks:\n{checks}\n"
         help_message = f"{help_message}\n\nGet curated NGINX RPMs (NGINX Extras by GetPageSpeed): https://nginx-extras.getpagespeed.com/"
         return help_message
 

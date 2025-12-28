@@ -17,7 +17,6 @@ class if_is_evil(Plugin):
         "expect but something completely different instead. In some cases it even segfaults. It is "
         "generally a good idea to avoid it if possible."
     )
-    help_url = "https://gixy.getpagespeed.com/plugins/if_is_evil/"
     directives = []
 
     def audit(self, directive):

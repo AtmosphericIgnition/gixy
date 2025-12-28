@@ -1,3 +1,8 @@
+---
+title: "Gixy：NGINX 安全与配置加固扫描器"
+description: "开源 NGINX 配置分析器，在上线前找出安全隐患、加固缺口和性能陷阱。支持 SSRF、HTTP 拆分、主机头欺骗等多种漏洞检测。"
+---
+
 GIXY
 ====
 [![Mozilla Public License 2.0](https://img.shields.io/badge/license-MPLv2.0-brightgreen?style=flat-square)](https://github.com/dvershinin/gixy/blob/master/LICENSE)
@@ -23,21 +28,21 @@ Gixy 是一款用于分析 Nginx 配置的工具。
 # 功能
 Gixy 目前可以发现：
 
-*   [[ssrf] 服务器端请求伪造](plugins/ssrf.md)
-*   [[http_splitting] HTTP 拆分](plugins/httpsplitting.md)
-*   [[origins] 引用来源（Referer/Origin）校验问题](plugins/origins.md)
-*   [[add_header_redefinition] 通过 "add_header" 重定义响应头](plugins/addheaderredefinition.md)
-*   [[host_spoofing] 伪造请求的 Host 头](plugins/hostspoofing.md)
-*   [[valid_referrers] 在 valid_referers 中使用 none](plugins/validreferers.md)
-*   [[add_header_multiline] 多行响应头](plugins/addheadermultiline.md)
-*   [[alias_traversal] 错误 alias 导致路径穿越](plugins/aliastraversal.md)
-*   [[if_is_evil] 在 location 中使用 if 存在风险](plugins/if_is_evil.md)
-*   [[allow_without_deny] 仅 allow 未配套 deny](plugins/allow_without_deny.md)
-*   [[add_header_content_type] 使用 add_header 设置 Content‑Type](plugins/add_header_content_type.md)
-*   [[resolver_external] 使用外部 DNS 解析器](plugins/resolver_external.md)
-*   [[version_disclosure] 版本泄露](plugins/version_disclosure.md)
-*   [[proxy_pass_normalized] proxy_pass 归一化/解码路径风险](plugins/proxy_pass_normalized.md)
-*   [[regex_redos] 正则可能导致 ReDoS](plugins/regex_redos.md)
+*   [服务器端请求伪造 (SSRF)](checks/ssrf.md)
+*   [HTTP 拆分](checks/http-splitting.md)
+*   [引用来源（Referer/Origin）校验问题](checks/origins.md)
+*   [通过 "add_header" 重定义响应头](checks/add-header-redefinition.md)
+*   [伪造请求的 Host 头](checks/host-spoofing.md)
+*   [在 valid_referers 中使用 none](checks/valid-referers.md)
+*   [多行响应头](checks/add-header-multiline.md)
+*   [错误 alias 导致路径穿越](checks/alias-traversal.md)
+*   [在 location 中使用 if 存在风险](checks/if-is-evil.md)
+*   [仅 allow 未配套 deny](checks/allow-without-deny.md)
+*   [使用 add_header 设置 Content‑Type](checks/add-header-content-type.md)
+*   [使用外部 DNS 解析器](checks/resolver-external.md)
+*   [版本泄露](checks/version-disclosure.md)
+*   [proxy_pass 归一化/解码路径风险](checks/proxy-pass-normalized.md)
+*   [正则可能导致 ReDoS](checks/regex-redos.md)
 
 更多即将支持的检测项，见 Issues 中的 ["new plugin"](https://github.com/dvershinin/gixy/issues?q=is%3Aissue+is%3Aopen+label%3A%22new+plugin%22)。
 

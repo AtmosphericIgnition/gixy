@@ -1,65 +1,96 @@
-GIXY
-====
-[![Mozilla Public License 2.0](https://img.shields.io/badge/license-MPLv2.0-brightgreen?style=flat-square)](https://github.com/dvershinin/gixy/blob/master/LICENSE)
-[![Python tests](https://github.com/dvershinin/gixy/actions/workflows/pythonpackage.yml/badge.svg)](https://github.com/dvershinin/gixy/actions/workflows/pythonpackage.yml)
-[![Your feedback is greatly appreciated](https://img.shields.io/maintenance/yes/2025.svg?style=flat-square)](https://github.com/dvershinin/gixy/issues/new)
-[![GitHub issues](https://img.shields.io/github/issues/dvershinin/gixy.svg?style=flat-square)](https://github.com/dvershinin/gixy/issues)
-[![GitHub pull requests](https://img.shields.io/github/issues-pr/dvershinin/gixy.svg?style=flat-square)](https://github.com/dvershinin/gixy/pulls)
+---
+title: "Gixy: NGINX Security & Config Hardening Scanner"
+description: "Open source NGINX analyzer that uncovers security flaws, hardening gaps, and performance gotchas before your config ships."
+---
 
-# Overview
-<img style="float: right;" width="192" height="192" src="../gixy.png" alt="Gixy logo">
+# Gixy: NGINX Security & Config Hardening Scanner
 
-Gixy is a tool to analyze Nginx configuration.
-The main goal of Gixy is to prevent security misconfiguration and automate flaw detection.
+## Overview
+
+<img width="192" height="192" alt="Gixy Mascot Logo" style="float: right;" src="../gixy.png">
+
+Gixy is an open source NGINX analyzer that reviews your configuration for security risks, misconfigurations, and missed hardening opportunities—before they ever reach production.
+
+You can use Gixy to run automated NGINX configuration security audits, and harden your nginx.conf against SSRF, HTTP response splitting, host header spoofing, version disclosure, and other vulnerabilities, as well as misconfigurations which lead to degraded performance and slow nginx servers.
+
+## Why Gixy Matters for NGINX Security & Compliance
+
+Unlike `nginx -t`, which only validates syntax, Gixy **analyzes** your configuration to surface unhardened areas, vulnerabilities, and performance pitfalls. Run it locally or in CI/CD on every change for automated NGINX security and compliance checks.
 
 Currently supported Python versions are 3.6 through 3.13.
 
-Disclaimer: Gixy is well tested only on GNU/Linux, other OSs may have some issues.
+!!! warning "Platform Note"
+    Gixy is well tested only on GNU/Linux and macOS; other operating systems may have some issues.
 
 !!! tip "Harden NGINX with maintained RPMs"
     Use NGINX Extras by GetPageSpeed for continuously updated NGINX and modules on RHEL/CentOS/Alma/Rocky.
     [Learn more](https://nginx-extras.getpagespeed.com/).
 
-# What it can do
-Right now Gixy can find:
+## What Gixy Can Detect
 
-*   [[ssrf] Server Side Request Forgery](plugins/ssrf.md)
-*   [[http_splitting] HTTP Splitting](plugins/httpsplitting.md)
-*   [[origins] Problems with referrer/origin validation](plugins/origins.md)
-*   [[add_header_redefinition] Redefining of response headers by "add_header" directive](plugins/addheaderredefinition.md)
-*   [[host_spoofing] Request's Host header forgery](plugins/hostspoofing.md)
-*   [[valid_referers] none in valid_referers](plugins/validreferers.md)
-*   [[add_header_multiline] Multiline response headers](plugins/addheadermultiline.md)
-*   [[alias_traversal] Path traversal via misconfigured alias](plugins/aliastraversal.md)
-*   [[if_is_evil] If is evil when used in location context](plugins/if_is_evil.md)
-*   [[allow_without_deny] Allow specified without deny](plugins/allow_without_deny.md)
-*   [[add_header_content_type] Setting Content-Type via add_header](plugins/add_header_content_type.md)
-*   [[resolver_external] Using external DNS nameservers](plugins/resolver_external.md)
-*   [[version_disclosure] Using insecure values for server_tokens](plugins/version_disclosure.md)
-*   [[proxy_pass_normalized] Proxy pass path normalization issues](plugins/proxy_pass_normalized.md)
-*   [[regex_redos] Regular expression denial of service (ReDoS)](plugins/regex_redos.md)
-*   [[return_bypasses_allow_deny] Return bypasses allow/deny](plugins/return_bypasses_allow_deny.md)
-*   [[default_server_flag] Missing default_server flag](plugins/default_server_flag.md)
-*   [[error_log_off] Error log disabled](plugins/error_log_off.md)
-*   [[hash_without_default] Hash directive without default](plugins/hash_without_default.md)
-*   [[unanchored_regex] Unanchored regex in location](plugins/unanchored_regex.md)
-*   [[invalid_regex] Invalid regex capture groups](plugins/invalid_regex.md)
-*   [[try_files_is_evil_too] try_files without open_file_cache](plugins/try_files_is_evil_too.md)
-*   [[worker_rlimit_nofile_vs_connections] Worker connections vs rlimit](plugins/worker_rlimit_nofile_vs_connections.md)
-*   [[low_keepalive_requests] Low keepalive_requests value](plugins/low_keepalive_requests.md)
-*   [[missing_resolver] Static DNS resolution in proxy_pass](plugins/missing_resolver.md)
+Gixy can find various NGINX configuration security issues, as well as NGINX configuration performance issues, based on your `nginx.conf` and other NGINX configuration files. The following checks are available to detect these misconfigurations:
 
-You can find things that Gixy is learning to detect at [Issues labeled with "new plugin"](https://github.com/dvershinin/gixy/issues?q=is%3Aissue+is%3Aopen+label%3A%22new+plugin%22)
+### Security Vulnerabilities
 
-# Installation
+*   [Server Side Request Forgery (SSRF)](checks/ssrf.md)
+*   [HTTP Response Splitting](checks/http-splitting.md)
+*   [Request's Host Header Forgery](checks/host-spoofing.md)
+*   [Problems with Referrer/Origin Validation](checks/origins.md)
+*   [Path Traversal via Misconfigured Alias](checks/alias-traversal.md)
+*   [Proxy Pass Path Normalization Issues](checks/proxy-pass-normalized.md)
+*   [Regular Expression Denial of Service (ReDoS)](checks/regex-redos.md)
 
-## CentOS/RHEL and other RPM-based systems
+### Header & Response Security
+
+*   [Redefining Response Headers by "add_header" Directive](checks/add-header-redefinition.md)
+*   [Multiline Response Headers](checks/add-header-multiline.md)
+*   [Setting Content-Type via add_header](checks/add-header-content-type.md)
+*   [Missing or Weak HSTS Header](checks/hsts-header.md)
+
+### SSL/TLS Security
+
+*   [Weak SSL/TLS Configuration](checks/weak-ssl-tls.md)
+*   [HTTP/2 Misdirected Request Safeguard](checks/http2-misdirected-request.md)
+
+### Access Control & Validation
+
+*   [none in valid_referers](checks/valid-referers.md)
+*   [Allow Specified Without Deny](checks/allow-without-deny.md)
+*   [Return Bypasses allow/deny](checks/return-bypasses-allow-deny.md)
+
+### Configuration Best Practices
+
+*   [If is Evil When Used in Location Context](checks/if-is-evil.md)
+*   [Using Insecure Values for server_tokens](checks/version-disclosure.md)
+*   [Using External DNS Nameservers](checks/resolver-external.md)
+*   [Static DNS Resolution in proxy_pass](checks/missing-resolver.md)
+*   [Missing default_server Flag](checks/default-server-flag.md)
+*   [Error Log Disabled](checks/error-log-off.md)
+*   [Hash Directive Without Default](checks/hash-without-default.md)
+
+### Regex & Pattern Issues
+
+*   [Unanchored Regex in Location](checks/unanchored-regex.md)
+*   [Invalid Regex Capture Groups](checks/invalid-regex.md)
+
+### Performance Checks
+
+*   [try_files Without open_file_cache](checks/try-files-is-evil-too.md)
+*   [Worker Connections vs rlimit](checks/worker-rlimit-nofile-vs-connections.md)
+*   [Low keepalive_requests Value](checks/low-keepalive-requests.md)
+
+Something not detected? Please open an issue on our [GitHub repository](https://github.com/dvershinin/gixy/issues?q=is%3Aissue+is%3Aopen+label%3A%22new+check%22) with the "new check" label.
+
+## Installation
+
+### CentOS/RHEL and other RPM-based Systems
 
 ```bash
 yum -y install https://extras.getpagespeed.com/release-latest.rpm
 yum -y install gixy
 ```
-### Other systems
+
+### Other Systems (pip)
 
 Gixy is distributed on [PyPI](https://pypi.python.org/pypi/gixy-ng). The best way to install it is with pip:
 
@@ -68,11 +99,12 @@ pip install gixy-ng
 ```
 
 Run Gixy and check results:
+
 ```bash
 gixy
 ```
 
-# Usage
+## Usage
 
 By default, Gixy will try to analyze Nginx configuration placed in `/etc/nginx/nginx.conf`.
 
@@ -105,7 +137,7 @@ Total issues:
     High: 1
 ```
 
-Or skip some tests:
+Or skip some checks:
 ```
 $ gixy --skips http_splitting /etc/nginx/nginx.conf
 
@@ -128,10 +160,9 @@ You can also make `gixy` use pipes (stdin), like so:
 echo "resolver 1.1.1.1;" | gixy -
 ```
 
-## Docker usage
-Gixy is available as a Docker image [from the Docker hub](https://hub.docker.com/r/getpagespeed/gixy/). To
-use it, mount the configuration that you want to analyse as a volume and provide the path to the
-configuration file when running the Gixy image.
+### Docker Usage
+
+Gixy is available as a Docker image [from the Docker Hub](https://hub.docker.com/r/getpagespeed/gixy/). To use it, mount the configuration that you want to analyze as a volume and provide the path to the configuration file when running the Gixy image.
 ```
 $ docker run --rm -v `pwd`/nginx.conf:/etc/nginx/conf/nginx.conf getpagespeed/gixy /etc/nginx/conf/nginx.conf
 ```
@@ -156,17 +187,21 @@ Total issues:
 
 ```
 
-# Contributing
+## Contributing
+
 Contributions to Gixy are always welcome! You can help us in different ways:
-  * Open an issue with suggestions for improvements and errors you're facing;
-  * Fork this repository and submit a pull request;
-  * Improve the documentation.
 
-Code guidelines:
-  * Python code style should follow [pep8](https://www.python.org/dev/peps/pep-0008/) standards whenever possible;
-  * Pull requests with new plugins must have unit tests for them.
+- Open an issue with suggestions for improvements and errors you're facing in the [GitHub repository](https://github.com/dvershinin/gixy);
+- Fork this repository and submit a pull request;
+- Improve the documentation.
 
-Community guidelines:
-  * Be respectful and constructive in discussions;
-  * This project uses AI-assisted development - disparaging remarks about AI tooling are unwelcome;
-  * Focus on the code and ideas, not the tools used to create them.
+### Code Guidelines
+
+- Python code style should follow [PEP 8](https://www.python.org/dev/peps/pep-0008/) standards whenever possible;
+- Pull requests with new checks must have unit tests for them.
+
+### Community Guidelines
+
+- Be respectful and constructive in discussions;
+- This project uses AI-assisted development - disparaging remarks about AI tooling are unwelcome;
+- Focus on the code and ideas, not the tools used to create them.

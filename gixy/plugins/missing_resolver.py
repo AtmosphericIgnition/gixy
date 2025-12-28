@@ -262,7 +262,6 @@ class missing_resolver(Plugin):
         "load balancers and CDNs where IPs change frequently. Use a variable with 'resolver' "
         "directive, or upstream with 'resolve' parameter (nginx 1.27.3+)."
     )
-    help_url = "https://gixy.getpagespeed.com/plugins/missing_resolver/"
     directives = ["proxy_pass", "fastcgi_pass", "uwsgi_pass", "scgi_pass", "grpc_pass"]
 
     def __init__(self, config):

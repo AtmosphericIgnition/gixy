@@ -254,11 +254,15 @@ def _get_cli_parser():
     )
 
     parser.add_argument(
-        "--tests", dest="tests", type=str, help="Comma-separated list of tests to run"
+        "--checks",
+        "--tests",
+        dest="checks",
+        type=str,
+        help="Comma-separated list of checks to run",
     )
 
     parser.add_argument(
-        "--skips", dest="skips", type=str, help="Comma-separated list of tests to skip"
+        "--skips", dest="skips", type=str, help="Comma-separated list of checks to skip"
     )
 
     parser.add_argument(
@@ -300,7 +304,7 @@ def _get_cli_parser():
         help="Don't create .bak backup files when applying fixes (use with --fix)",
     )
 
-    group = parser.add_argument_group("plugins options")
+    group = parser.add_argument_group("check options")
     for plugin_cls in PluginsManager().plugins_classes:
         name = plugin_cls.__name__
         if not plugin_cls.options:
@@ -363,10 +367,10 @@ def main():
         )
         sys.exit(1)
 
-    if args.tests:
-        tests = [x.strip() for x in args.tests.split(",")]
+    if args.checks:
+        checks = [x.strip() for x in args.checks.split(",")]
     else:
-        tests = None
+        checks = None
 
     if args.skips:
         skips = [x.strip() for x in args.skips.split(",")]
@@ -377,7 +381,7 @@ def main():
         severity=severity,
         output_format=args.output_format,
         output_file=args.output_file,
-        plugins=tests,
+        plugins=checks,
         skips=skips,
         allow_includes=not args.disable_includes,
         vars_dirs=[x.strip() for x in args.vars_dirs.split(",")]

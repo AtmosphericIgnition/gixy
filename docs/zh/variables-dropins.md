@@ -1,3 +1,8 @@
+---
+title: "自定义变量与扩展"
+description: "用 drop-in 文件教会 Gixy 识别第三方 NGINX 变量，减少误报。支持 brotli、lua 等模块定义的变量，轻松扩展配置分析能力。"
+---
+
 ### 自定义变量扩展（drop-ins）
 
 一些第三方 NGINX 模块会定义额外的变量（例如 `$brotli_ratio`）。默认情况下，若 Gixy 无法解析某变量，会给出告警。你可以通过简单的扩展文件教会 Gixy 识别这些变量。

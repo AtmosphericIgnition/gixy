@@ -15,7 +15,6 @@ class error_log_off(Plugin):
     summary = "The error_log directive does not take the off parameter."
     severity = gixy.severity.MEDIUM
     description = "The error_log directive should not be set to off. It should be set to a valid file path."
-    help_url = "https://gixy.getpagespeed.com/plugins/error_log_off/"
     directives = ["error_log"]
 
     def audit(self, directive):

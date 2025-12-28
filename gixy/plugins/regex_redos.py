@@ -476,7 +476,6 @@ class regex_redos(Plugin):
         "CPU resources with specially crafted requests. A single malicious request "
         "can tie up an nginx worker for minutes or longer."
     )
-    help_url = "https://gixy.getpagespeed.com/plugins/regex_redos/"
     directives = ["location", "if", "rewrite", "server_name", "map"]
 
     def audit(self, directive):

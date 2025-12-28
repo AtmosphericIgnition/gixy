@@ -4,3 +4,4 @@ markdown-include
 pymdown-extensions
 mkdocs-static-i18n
 jieba
+mkdocs-redirects

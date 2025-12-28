@@ -11,7 +11,6 @@ class valid_referers(Plugin):
     summary = 'Used "none" as valid referer.'
     severity = gixy.severity.HIGH
     description = "Never trust undefined referer."
-    help_url = "https://gixy.getpagespeed.com/plugins/validreferers/"
     directives = ["valid_referers"]
 
     def audit(self, directive):

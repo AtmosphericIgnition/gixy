@@ -13,7 +13,6 @@ class resolver_external(Plugin):
         "Using external nameservers allows someone to send spoofed DNS replies to poison the resolver "
         "cache, causing NGINX to proxy HTTP requests to an arbitrary upstream server."
     )
-    help_url = "https://gixy.getpagespeed.com/plugins/resolver_external/"
     directives = ["resolver"]
 
     def audit(self, directive):

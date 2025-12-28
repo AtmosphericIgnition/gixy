@@ -1,13 +1,26 @@
 #!/usr/bin/env python3
 """
-CI check: Ensure all plugins are documented in README.md
+CI check: Ensure all plugins are documented.
 
-Fails if any plugin is missing from README or docs/.
+Validates that:
+1. All plugins are mentioned in README.md
+2. All plugins have documentation files in docs/en/checks/
+
 Run: python scripts/check_plugin_docs.py
 """
 
 import sys
 from pathlib import Path
+
+# Plugins with external documentation (skip docs check)
+EXTERNAL_DOCS_PLUGINS = {
+    "try_files_is_evil_too",  # Links to external blog post
+}
+
+
+def plugin_name_to_slug(plugin_name):
+    """Convert a plugin name to kebab-case slug."""
+    return plugin_name.replace("_", "-")
 
 
 def get_plugins():
@@ -26,7 +39,7 @@ def check_readme(plugins):
     readme = Path("README.md").read_text().lower()
     missing = []
     for plugin in plugins:
-        # Check for plugin name (with underscores or without)
+        # Check for plugin name (with underscores, dashes, or without separators)
         variants = [
             plugin.lower(),
             plugin.replace("_", ""),
@@ -38,17 +51,17 @@ def check_readme(plugins):
 
 
 def check_docs(plugins):
-    """Check if plugins have doc files."""
-    docs_dir = Path("docs/en/plugins")
+    """Check if plugins have doc files in docs/en/checks/."""
+    docs_dir = Path("docs/en/checks")
     missing = []
     for plugin in plugins:
-        # Check various naming conventions
-        variants = [
-            f"{plugin}.md",
-            f"{plugin.replace('_', '')}.md",
-            f"{plugin.replace('_', '-')}.md",
-        ]
-        if not any((docs_dir / v).exists() for v in variants):
+        # Skip plugins with external documentation
+        if plugin in EXTERNAL_DOCS_PLUGINS:
+            continue
+        # Use kebab-case slug as per convention
+        slug = plugin_name_to_slug(plugin)
+        doc_file = docs_dir / f"{slug}.md"
+        if not doc_file.exists():
             missing.append(plugin)
     return missing
 
@@ -63,22 +76,23 @@ def main():
     errors = []
 
     if readme_missing:
-        print("❌ Plugins missing from README.md:")
+        print("Plugins missing from README.md:")
         for p in readme_missing:
             print(f"   - {p}")
         errors.append(f"{len(readme_missing)} plugins not in README")
 
     if docs_missing:
-        print("\n⚠️  Plugins missing documentation (docs/en/plugins/):")
+        print("\nPlugins missing documentation (docs/en/checks/):")
         for p in docs_missing:
-            print(f"   - {p}")
-        # Warning only, not error (docs can be added later)
+            slug = plugin_name_to_slug(p)
+            print(f"   - {p} -> docs/en/checks/{slug}.md")
+        errors.append(f"{len(docs_missing)} plugins missing docs")
 
     if errors:
-        print(f"\n💥 FAILED: {', '.join(errors)}")
+        print(f"\nFAILED: {', '.join(errors)}")
         sys.exit(1)
     else:
-        print("\n✅ All plugins documented in README!")
+        print("\nAll plugins documented!")
         sys.exit(0)
 
 

@@ -11,7 +11,6 @@ class allow_without_deny(Plugin):
     summary = "Found allow directive(s) without deny in the same context."
     severity = gixy.severity.HIGH
     description = 'The "allow" directives should be typically accompanied by "deny all;" directive.'
-    help_url = "https://gixy.getpagespeed.com/plugins/allow_without_deny/"
     directives = ["allow"]
 
     def audit(self, directive):

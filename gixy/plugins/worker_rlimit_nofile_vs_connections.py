@@ -18,9 +18,6 @@ class worker_rlimit_nofile_vs_connections(Plugin):
     description = (
         "The worker_rlimit_nofile should be at least twice than worker_connections."
     )
-    help_url = (
-        "https://gixy.getpagespeed.com/plugins/worker_rlimit_nofile_vs_connections/"
-    )
     directives = ["worker_connections"]
 
     def audit(self, directive):

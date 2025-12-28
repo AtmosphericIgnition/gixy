@@ -1,6 +1,9 @@
 import gixy
 from gixy.core.issue import Fix, Issue
 
+# Base URL for plugin documentation
+DOCS_BASE_URL = "https://gixy.getpagespeed.com/checks/"
+
 
 class Plugin:
     """
@@ -11,28 +14,45 @@ class Plugin:
     Class Attributes:
         summary: Short description of the issue this plugin detects.
         description: Detailed description of the issue.
-        help_url: URL to documentation about this issue.
         severity: Default severity level for issues from this plugin.
         directives: List of directive names this plugin audits.
         options: Plugin-specific configuration options.
         options_help: Help text for configuration options.
         supports_full_config: Whether plugin uses post_audit() for full config analysis.
+
+    Properties:
+        help_url: Auto-generated URL to documentation (override _help_url to customize).
     """
 
     summary = ""
     description = ""
-    help_url = ""
     severity = gixy.severity.UNSPECIFIED
     directives = []
     options = {}
     options_help = {}
 
-    # New flag to indicate plugin supports full config analysis
+    # Override this to use a custom help URL (e.g., external documentation)
+    _help_url = None
+
+    # Flag to indicate plugin supports full config analysis
     supports_full_config = False
 
     def __init__(self, config):
         self._issues = []
         self.config = config
+
+    @property
+    def help_url(self):
+        """Get the help URL for this plugin.
+
+        Returns the custom _help_url if set, otherwise auto-generates from class name.
+        URL format: https://gixy.getpagespeed.com/checks/{plugin-name}/
+        where plugin-name is the class name with underscores replaced by dashes.
+        """
+        if self._help_url:
+            return self._help_url
+        slug = self.__class__.__name__.replace("_", "-")
+        return f"{DOCS_BASE_URL}{slug}/"
 
     def add_issue(
         self,

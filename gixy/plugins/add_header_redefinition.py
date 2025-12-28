@@ -124,7 +124,6 @@ class add_header_redefinition(Plugin):
         "See documentation: https://nginx.org/en/docs/http/ngx_http_headers_module.html#add_header "
         'Note: nginx 1.29.3+ supports "add_header_inherit on;" to inherit parent headers.'
     )
-    help_url = "https://gixy.getpagespeed.com/plugins/addheaderredefinition/"
     directives = ["server", "location", "if"]
     options = {"headers": set()}
     options_help = {

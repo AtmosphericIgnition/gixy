@@ -22,7 +22,6 @@ class http_splitting(Plugin):
     description = (
         'Using variables that can contain "\\n" or "\\r" may lead to http injection.'
     )
-    help_url = "https://gixy.getpagespeed.com/plugins/httpsplitting/"
     directives = ["rewrite", "return", "add_header", "proxy_set_header", "proxy_pass"]
 
     def audit(self, directive):

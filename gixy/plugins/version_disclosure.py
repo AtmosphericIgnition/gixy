@@ -14,7 +14,6 @@ class version_disclosure(Plugin):
         "attacker to learn the version of NGINX you are running, which can "
         "be used to exploit known vulnerabilities."
     )
-    help_url = "https://gixy.getpagespeed.com/plugins/version_disclosure/"
     directives = ["server_tokens"]
     supports_full_config = True
 

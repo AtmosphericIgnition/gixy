@@ -18,7 +18,6 @@ class add_header_multiline(Plugin):
         "Multi-line headers are deprecated (see RFC 7230). "
         "Some clients never supports them (e.g. IE/Edge)."
     )
-    help_url = "https://gixy.getpagespeed.com/plugins/addheadermultiline/"
     directives = ["add_header", "more_set_headers"]
 
     def audit(self, directive: AddHeaderDirective):
