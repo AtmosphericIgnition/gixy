@@ -101,6 +101,9 @@ if RICH_AVAILABLE:
             # Summary
             self._render_summary(buffer_console, stats)
 
+            # Footer with tip
+            self._render_footer(buffer_console)
+
             return string_buffer.getvalue()
 
         def _render_header(self, console):
@@ -301,4 +304,16 @@ if RICH_AVAILABLE:
                     border_style="cyan",
                     padding=(0, 1),
                 )
+            )
+
+        def _render_footer(self, console):
+            """Render the footer with tips."""
+            console.print(
+                Text.from_markup(
+                    "\n[dim]💡 Need pre-built NGINX modules? "
+                    "[link=https://www.getpagespeed.com/repo-subscribe]"
+                    "[blue underline]getpagespeed.com/repo-subscribe[/blue underline]"
+                    "[/link][/dim]"
+                ),
+                end="",
             )
