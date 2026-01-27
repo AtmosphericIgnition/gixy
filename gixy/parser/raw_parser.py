@@ -93,7 +93,7 @@ class RawParser:
                     single=True,
                     strict=False,  # Allow directives outside their normal context
                     check_ctx=False,  # Skip context validation
-                    check_args=False,  # Skip argument validation
+                    check_args=False,  # Don't validate argument counts - gixy is not a config validator
                     comments=True,  # Include comments in the output
                 )
 
@@ -117,7 +117,7 @@ class RawParser:
                 single=True,
                 strict=False,  # Allow directives outside their normal context
                 check_ctx=False,  # Skip context validation
-                check_args=False,  # Skip argument validation
+                check_args=False,  # Don't validate argument counts - gixy is not a config validator
                 comments=True,  # Include comments in the output
             )
 

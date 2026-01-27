@@ -3,6 +3,7 @@ try:
 except ImportError:
     from functools import cached_property
 
+from gixy.core.exceptions import InvalidConfiguration
 from gixy.core.regexp import Regexp
 from gixy.core.variable import Variable, compile_script
 from gixy.directives.directive import Directive, MapDirective
@@ -182,7 +183,7 @@ class IfBlock(Block):
             # if ($request_method = POST)
             self.variable, self.operand, self.value = args
         else:
-            raise Exception(f'Unknown "if" definition, args: {args!r}')
+            raise InvalidConfiguration(f'Unknown "if" definition, args: {args!r}')
 
     def __str__(self):
         return "{name} ({args}) {{".format(name=self.name, args=" ".join(self.args))

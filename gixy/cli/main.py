@@ -421,7 +421,8 @@ def main():
                 else:
                     with open(path, mode="rb") as fdata:
                         yoda.audit(path, fdata, is_stdin=False)
-            except InvalidConfiguration:
+            except InvalidConfiguration as e:
+                sys.stderr.write(f"Configuration error: {e}\n")
                 failed = True
             formatter.feed(path, yoda)
             failed = failed or sum(yoda.stats.values()) > 0

@@ -199,16 +199,22 @@ class NginxParser:
         if not klass:
             return None
 
-        if klass.is_block:
-            args = [to_native(v).strip() for v in parsed_args[0]]
-            children = parsed_args[1]
+        try:
+            if klass.is_block:
+                args = [to_native(v).strip() for v in parsed_args[0]]
+                children = parsed_args[1]
 
-            inst = klass(parsed_name, args)
-            self.parse_block(children, inst)
-            return inst
-        else:
-            args = [to_native(v).strip() for v in parsed_args]
-            return klass(parsed_name, args)
+                inst = klass(parsed_name, args)
+                self.parse_block(children, inst)
+                return inst
+            else:
+                args = [to_native(v).strip() for v in parsed_args]
+                return klass(parsed_name, args)
+        except (IndexError, TypeError) as e:
+            raise InvalidConfiguration(
+                f'Failed to parse "{parsed_name}" directive: {e}. '
+                f'Config may be malformed - run "nginx -t" to validate.'
+            )
 
     def _get_directive_class(self, parsed_type, parsed_name):
         if (
@@ -233,6 +239,11 @@ class NginxParser:
         self.directives["directive"] = directive.get_overrides()
 
     def _resolve_include(self, args, parent):
+        if not args:
+            raise InvalidConfiguration(
+                'Failed to parse "include" directive: list index out of range. '
+                'Config may be malformed - run "nginx -t" to validate.'
+            )
         pattern = args[0]
         #  TODO(buglloc): maybe file providers?
         if self.is_dump:
