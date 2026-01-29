@@ -1,4 +1,4 @@
-crossplane>=0.5.8
+ngxparse>=0.5.16
 cached-property>=1.2.0
 argparse>=1.4.0
 Jinja2>=2.8

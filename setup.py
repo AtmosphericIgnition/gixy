@@ -16,7 +16,7 @@ if not version:
     raise RuntimeError("Cannot find version information")
 
 install_requires = [
-    "crossplane>=0.5.8",
+    "ngxparse>=0.5.16",
     'cached-property>=1.2.0;python_version<"3.8"',
     'argparse>=1.4.0;python_version<"3.2"',
     "Jinja2>=2.8",

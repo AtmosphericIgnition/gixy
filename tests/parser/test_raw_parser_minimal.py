@@ -96,3 +96,38 @@ if (1) # Inline
     assert "Standalone" in texts
     # Inline comment should not appear as a standalone comment node
     assert not any(t and "Inline" in t for t in texts)
+
+
+def test_braced_variable_args_split():
+    """
+    Regression test for braced variable tokenization.
+
+    Prior to ngxparse 0.5.16, crossplane incorrectly tokenized
+    'map ${var1}${var2} $result' as having a single arg '${var1}${var2} $result'
+    instead of two separate args. This test ensures the fix works correctly.
+    """
+    config = """
+http {
+    map ${detect_bot}${geo_list} $intermed {
+        default 0;
+    }
+}
+    """
+    nodes = RawParser().parse(config)
+
+    # Find the map block
+    def find_blocks(ns, name):
+        for x in ns:
+            if x.get("name") == name and x.get("kind") == "block":
+                yield x
+            if x.get("kind") == "block":
+                yield from find_blocks(x.get("children", []), name)
+
+    map_blocks = list(find_blocks(nodes, "map"))
+    assert len(map_blocks) == 1
+    map_block = map_blocks[0]
+
+    # Args should be split correctly: ['${detect_bot}${geo_list}', '$intermed']
+    assert len(map_block.get("args", [])) == 2
+    assert map_block["args"][0] == "${detect_bot}${geo_list}"
+    assert map_block["args"][1] == "$intermed"
