@@ -75,33 +75,18 @@ class RawParser:
             return []
 
         try:
-            # Since crossplane expects a filename, we need to create a temporary file
-            import os
-            import tempfile
+            # Parse using crossplane's parse_string for direct string input
+            parsed = crossplane.parse_string(
+                content,
+                single=True,
+                strict=False,  # Allow directives outside their normal context
+                check_ctx=False,  # Skip context validation
+                check_args=False,  # Don't validate argument counts - gixy is not a config validator
+                comments=True,  # Include comments in the output
+            )
 
-            # Create a temporary file with the content
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".conf", delete=False
-            ) as temp_file:
-                temp_file.write(content)
-                temp_filename = temp_file.name
-
-            try:
-                # Parse using crossplane with relaxed context checking for standalone configs
-                parsed = crossplane.parse(
-                    temp_filename,
-                    single=True,
-                    strict=False,  # Allow directives outside their normal context
-                    check_ctx=False,  # Skip context validation
-                    check_args=False,  # Don't validate argument counts - gixy is not a config validator
-                    comments=True,  # Include comments in the output
-                )
-
-                # Convert crossplane format to normalized nodes
-                return self._normalize_crossplane(parsed)
-            finally:
-                # Clean up temporary file
-                os.unlink(temp_filename)
+            # Convert crossplane format to normalized nodes
+            return self._normalize_crossplane(parsed)
 
         except NgxParserBaseException as e:
             # Convert crossplane error to ParseException format
