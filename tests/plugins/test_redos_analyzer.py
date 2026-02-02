@@ -141,6 +141,39 @@ class TestSafePatterns:
         vulns = analyzer.analyze()
         assert len(vulns) == 0
 
+    def test_optional_group_with_inner_quantifier(self):
+        """([a-z]+/)? is safe - ? means 0 or 1 times, no exponential backtracking."""
+        analyzer = RedosAnalyzer("^/([a-z]+/)?foo$")
+        vulns = analyzer.analyze()
+        assert len(vulns) == 0
+
+    def test_optional_group_real_world(self):
+        """Real-world cache busting pattern should be safe."""
+        analyzer = RedosAnalyzer("^/([_0-9a-zA-Z-]+/)?core/cache/busting/1/core/(.*)")
+        vulns = analyzer.analyze()
+        assert len(vulns) == 0
+
+    def test_optional_group_complex(self):
+        """Complex optional group should be safe."""
+        analyzer = RedosAnalyzer("^/(prefix-[a-z0-9]+)?/api/v[0-9]+$")
+        vulns = analyzer.analyze()
+        assert len(vulns) == 0
+
+    def test_bounded_outer_with_unbounded_inner(self):
+        """(a+){0,1} is same as (a+)? - bounded outer, should be safe."""
+        analyzer = RedosAnalyzer("(a+){0,1}")
+        vulns = analyzer.analyze()
+        assert len(vulns) == 0
+
+    def test_bounded_outer_max_2(self):
+        """(a+){1,2} has bounded outer max=2, still could have some backtracking."""
+        # This is a borderline case - max=2 means at most 2 repetitions
+        # Not exponential but could flag as nested
+        analyzer = RedosAnalyzer("(a+){1,2}")
+        vulns = analyzer.analyze()
+        # We allow max>1 to be flagged, so this should be flagged
+        assert len(vulns) > 0
+
 
 class TestRealWorldVulnerablePatterns:
     """Test detection of real-world vulnerable patterns."""

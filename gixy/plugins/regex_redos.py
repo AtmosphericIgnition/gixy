@@ -125,12 +125,15 @@ class RedosAnalyzer:
             if op in QUANTIFIERS:
                 min_repeat, max_repeat, subpattern = av
 
-                # Check if this quantifier can match variable length
-                can_repeat = (
-                    max_repeat > min_repeat or max_repeat == sre_parse.MAXREPEAT
+                # Check if this quantifier can match MULTIPLE times (more than once)
+                # The ? quantifier (max=1) cannot cause exponential backtracking as
+                # the outer quantifier because it matches at most once.
+                # Only unbounded quantifiers (+, *, {n,m} where m>1) are dangerous.
+                can_repeat_multiple = (
+                    max_repeat > 1 or max_repeat == sre_parse.MAXREPEAT
                 )
 
-                if can_repeat:
+                if can_repeat_multiple:
                     if in_quantifier:
                         # Found nested quantifier!
                         self.vulnerabilities.append(
@@ -158,7 +161,11 @@ class RedosAnalyzer:
                         subpattern, depth + 1, in_quantifier=True
                     )
                 else:
-                    self._check_nested_quantifiers(subpattern, depth + 1, in_quantifier)
+                    # Bounded quantifiers like ? (max=1) or {1,2} don't propagate
+                    # the in_quantifier context since they can't cause exponential backtracking
+                    self._check_nested_quantifiers(
+                        subpattern, depth + 1, in_quantifier=False
+                    )
 
             elif op == SUBPATTERN:
                 _, _, _, subpattern = av
@@ -175,11 +182,13 @@ class RedosAnalyzer:
                 self._check_nested_quantifiers(subpattern, depth + 1, in_quantifier)
 
     def _contains_quantifier(self, parsed):
-        """Check if parsed pattern contains any unbounded quantifiers."""
+        """Check if parsed pattern contains any unbounded quantifiers (can match more than once)."""
         for op, av in parsed:
             if op in QUANTIFIERS:
                 min_repeat, max_repeat, _ = av
-                if max_repeat > min_repeat or max_repeat == sre_parse.MAXREPEAT:
+                # Only unbounded quantifiers (+, *, {n,m} where m>1) count as dangerous
+                # The ? quantifier (max=1) is bounded and not dangerous for nesting
+                if max_repeat > 1 or max_repeat == sre_parse.MAXREPEAT:
                     return True
             elif op == SUBPATTERN:
                 _, _, _, subpattern = av
