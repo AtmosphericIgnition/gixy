@@ -32,7 +32,7 @@ Gixy detects a wide range of security issues across these categories:
 | 🔐 **TLS & Encryption** | [Weak SSL/TLS][weak_ssl_tls] &#183; [HTTP/2 Misdirected Request][http2_misdirected_request] &#183; [Version Disclosure][version_disclosure] |
 | 📂 **Path Traversal** | [Alias Traversal][alias_traversal] &#183; [Proxy Pass Normalized][proxy_pass_normalized] |
 | 📋 **Header Security** | [HSTS Header][hsts_header] &#183; [Header Redefinition][add_header_redefinition] &#183; [Multiline Headers][add_header_multiline] &#183; [Content-Type via add_header][add_header_content_type] |
-| 🚦 **Access Control** | [Allow Without Deny][allow_without_deny] &#183; [Return Bypasses ACL][return_bypasses_allow_deny] &#183; [Valid Referers][valid_referers] |
+| 🚦 **Access Control** | [Allow Without Deny][allow_without_deny] &#183; [Return Bypasses ACL][return_bypasses_allow_deny] &#183; [Valid Referers][valid_referers] &#183; [Status Page Exposed][status_page_exposed] |
 | 🌐 **DNS & Resolver** | [External Resolver][resolver_external] &#183; [Missing Resolver][missing_resolver] |
 | ⚙️ **Config & Performance** | [ReDoS][regex_redos] &#183; [Unanchored Regex][unanchored_regex] &#183; [Invalid Regex][invalid_regex] &#183; [If Is Evil][if_is_evil] &#183; [Try Files Evil][try_files_is_evil_too] &#183; [Default Server][default_server_flag] &#183; [Hash Default][hash_without_default] &#183; [Error Log Off][error_log_off] &#183; [Worker Limits][worker_rlimit_nofile_vs_connections] &#183; [Low Keepalive][low_keepalive_requests] |
 
@@ -55,6 +55,7 @@ Gixy detects a wide range of security issues across these categories:
 [allow_without_deny]: https://gixy.getpagespeed.com/plugins/allow_without_deny/
 [return_bypasses_allow_deny]: https://gixy.getpagespeed.com/plugins/return_bypasses_allow_deny/
 [valid_referers]: https://gixy.getpagespeed.com/plugins/validreferers/
+[status_page_exposed]: https://gixy.getpagespeed.com/plugins/status_page_exposed/
 [resolver_external]: https://gixy.getpagespeed.com/plugins/resolver_external/
 [missing_resolver]: https://gixy.getpagespeed.com/plugins/missing_resolver/
 [regex_redos]: https://gixy.getpagespeed.com/plugins/regex_redos/
