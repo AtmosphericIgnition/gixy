@@ -1,1 +1,80 @@
-/Users/danila/Projects/dotfiles/pre-commit/projects/gixy/.pre-commit-config.yaml
+# Pre-commit hooks for gixy
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+
+repos:
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: debug-statements
+
+  # Ruff for linting and formatting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.9
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  # Bandit for security scanning
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.10
+    hooks:
+      - id: bandit
+        args: ["-c", "pyproject.toml"]
+        additional_dependencies: ["bandit[toml]"]
+
+  # Local hooks for gixy-specific checks
+  - repo: local
+    hooks:
+      # Check for hardcoded IPs (similar to SonarCloud S1313)
+      - id: check-hardcoded-ips
+        name: Check for hardcoded IP addresses
+        description: Catches hardcoded IPs that SonarCloud would flag
+        entry: python3 scripts/check_hardcoded_ips.py
+        language: system
+        types: [python]
+
+      # Check plugin help_url values point to official docs (using Python 3.6)
+      - id: check-plugin-help-urls
+        name: Check plugin help_url values (Python 3.6)
+        description: Ensure all plugins have help_url at gixy.getpagespeed.com
+        entry: bash -c 'PYENV_VERSION=3.6 pyenv exec python scripts/check_plugin_help_urls.py'
+        language: system
+        pass_filenames: false
+        files: ^(gixy/plugins/.*\.py|scripts/check_plugin_help_urls\.py)$
+
+      # Check plugin documentation exists (using Python 3.6)
+      - id: check-plugin-docs
+        name: Check plugin documentation (Python 3.6)
+        description: Ensure all plugins have corresponding documentation
+        entry: bash -c 'PYENV_VERSION=3.6 pyenv exec python scripts/check_plugin_docs.py'
+        language: system
+        pass_filenames: false
+        files: ^(gixy/plugins/.*\.py|docs/en/plugins/.*\.md|scripts/check_plugin_docs\.py)$
+
+      # Run tests on plugin changes
+      - id: pytest-plugins
+        name: Run plugin tests
+        description: Run tests when plugin files change
+        entry: bash -c 'python3 -m pytest tests/plugins/ -v --tb=short -q'
+        language: system
+        pass_filenames: false
+        files: ^gixy/plugins/.*\.py$
+        stages: [pre-push]  # Only run on push, not commit
+
+      # Run full tests on Python 3.6 before commit
+      - id: pytest-py36
+        name: Run tests on Python 3.6
+        description: Full test suite on minimum supported Python
+        entry: bash -c 'PYENV_VERSION=3.6 pyenv exec python -m pytest tests/ -q --tb=line'
+        language: system
+        pass_filenames: false
+        files: ^(gixy/.*\.py|tests/.*\.py)$
+        stages: [pre-commit]
