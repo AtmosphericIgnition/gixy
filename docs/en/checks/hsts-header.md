@@ -57,3 +57,5 @@ http {
 ## Notes
 
 - Servers configured with `ssl_reject_handshake on;` are skipped, because they never emit HTTP response headers.
+- The [`ngx_security_headers`](https://github.com/GetPageSpeed/ngx_security_headers) module (`security_headers on;`) is recognized as providing HSTS — no separate `add_header` is required.
+- The `more_set_headers` directive (from the [headers-more](https://github.com/openresty/headers-more-nginx-module) module) setting `Strict-Transport-Security` is also recognized.

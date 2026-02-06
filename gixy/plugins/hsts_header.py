@@ -63,7 +63,7 @@ class hsts_header(Plugin):
                 server_add_headers if server_add_headers else http_add_headers
             )
 
-            self._check_hsts(server_block, effective_add_headers)
+            self._check_hsts(server_block, http_block, effective_add_headers)
 
     def _server_has_ssl(self, server_block):
         for listen_dir in server_block.find("listen"):
@@ -76,7 +76,34 @@ class hsts_header(Plugin):
         ssl_reject = server_block.some("ssl_reject_handshake")
         return bool(ssl_reject and ssl_reject.args and ssl_reject.args[0] == "on")
 
-    def _check_hsts(self, server_block, add_headers):
+    def _has_security_headers_module(self, server_block, http_block):
+        """Check if security_headers directive is enabled in server or http block."""
+        for block in (server_block, http_block):
+            if block is None:
+                continue
+            directive = block.some("security_headers")
+            if directive and directive.args and directive.args[0] == "on":
+                return True
+        return False
+
+    def _has_more_set_headers_hsts(self, server_block, http_block):
+        """Check if more_set_headers sets Strict-Transport-Security in server or http block."""
+        for block in (server_block, http_block):
+            if block is None:
+                continue
+            for directive in block.find("more_set_headers"):
+                for header_name in directive.headers:
+                    if header_name.lower() == "strict-transport-security":
+                        return True
+        return False
+
+    def _check_hsts(self, server_block, http_block, add_headers):
+        # Skip if security_headers module or more_set_headers provides HSTS
+        if self._has_security_headers_module(server_block, http_block):
+            return
+        if self._has_more_set_headers_hsts(server_block, http_block):
+            return
+
         hsts_directive = None
         for add_header in add_headers:
             if (

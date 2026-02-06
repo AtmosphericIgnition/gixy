@@ -4,7 +4,7 @@ Plugin to detect weak SSL/TLS configurations in NGINX.
 Checks for:
 - Outdated protocols (SSLv2, SSLv3, TLSv1, TLSv1.1)
 - Weak cipher suites
-- Insecure ssl_prefer_server_ciphers settings
+- Unnecessary ssl_prefer_server_ciphers on
 """
 
 import gixy
@@ -180,20 +180,22 @@ class weak_ssl_tls(Plugin):
             )
 
     def _check_prefer_server_ciphers(self, directive):
-        """Check if ssl_prefer_server_ciphers is properly configured."""
-        if directive.args and directive.args[0] == "off":
+        """Check if ssl_prefer_server_ciphers is unnecessarily enabled."""
+        if directive.args and directive.args[0] == "on":
             self.add_issue(
-                severity=gixy.severity.MEDIUM,
+                severity=gixy.severity.LOW,
                 directive=[directive, directive.parent],
-                summary="Server cipher preference disabled",
-                reason="ssl_prefer_server_ciphers is off, allowing clients to choose ciphers. "
-                "This may result in weaker cipher selection if the client prefers insecure options.",
+                summary="Server cipher preference enabled unnecessarily",
+                reason="ssl_prefer_server_ciphers is on, forcing server cipher order. "
+                "With modern cipher lists (all strong AEAD ciphers), client cipher preference "
+                "improves performance — mobile clients without AES-NI benefit from choosing "
+                "ChaCha20-Poly1305 over AES-GCM. Mozilla and nginx maintainers recommend off.",
                 fixes=[
                     self.make_fix(
-                        title="Enable server cipher preference",
-                        search="ssl_prefer_server_ciphers off",
-                        replace="ssl_prefer_server_ciphers on",
-                        description="Let the server choose the strongest cipher",
+                        title="Disable server cipher preference",
+                        search="ssl_prefer_server_ciphers on",
+                        replace="ssl_prefer_server_ciphers off",
+                        description="Let clients choose the most efficient cipher",
                     ),
                 ],
             )

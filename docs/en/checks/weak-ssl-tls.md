@@ -37,7 +37,7 @@ Detects cipher suites that should be avoided:
 - **MD5-based ciphers** - Weak hash function
 
 ### 3. Server Cipher Preference
-Detects when `ssl_prefer_server_ciphers` is disabled, allowing clients to choose potentially weaker ciphers.
+Detects when `ssl_prefer_server_ciphers` is set to `on`. With modern cipher lists containing only strong AEAD ciphers, server cipher preference is unnecessary and may hurt performance — mobile clients without AES-NI hardware benefit from choosing ChaCha20-Poly1305 over AES-GCM. Both [Mozilla](https://ssl-config.mozilla.org/) and nginx maintainers recommend `off`.
 
 ## Examples
 
@@ -59,6 +59,15 @@ server {
 ```
 **Issue**: `Weak ciphers found: RC4, DES, 3DES`
 
+### ❌ Bad: Server cipher preference enabled
+```nginx
+server {
+    listen 443 ssl;
+    ssl_prefer_server_ciphers on;  # Unnecessary with modern cipher lists
+}
+```
+**Issue**: `Server cipher preference enabled unnecessarily` (LOW)
+
 ### ✅ Good: Secure configuration
 ```nginx
 server {
@@ -70,8 +79,8 @@ server {
     # Mozilla Intermediate cipher suite
     ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
 
-    # Server chooses cipher
-    ssl_prefer_server_ciphers on;
+    # Client chooses cipher (recommended by Mozilla)
+    ssl_prefer_server_ciphers off;
 
     # HSTS is checked by the dedicated `hsts_header` plugin.
 }

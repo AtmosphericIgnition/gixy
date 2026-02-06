@@ -56,3 +56,63 @@ def test_ssl_reject_handshake_server_does_not_require_hsts():
 
     plugins = _audit_config(config)
     assert len(plugins) == 0
+
+
+def test_security_headers_on_suppresses_hsts():
+    config = """
+    http {
+        server {
+            listen 443 ssl;
+            security_headers on;
+        }
+    }
+    """
+
+    plugins = _audit_config(config)
+    assert len(plugins) == 0
+
+
+def test_security_headers_off_still_flags_missing_hsts():
+    config = """
+    http {
+        server {
+            listen 443 ssl;
+            security_headers off;
+        }
+    }
+    """
+
+    plugins = _audit_config(config)
+    assert len(plugins) == 1
+    assert plugins[0].name == "hsts_header"
+
+    summaries = [issue.summary for issue in plugins[0].issues]
+    assert "Missing HSTS header" in summaries
+
+
+def test_security_headers_on_at_http_level_suppresses_hsts():
+    config = """
+    http {
+        security_headers on;
+        server {
+            listen 443 ssl;
+        }
+    }
+    """
+
+    plugins = _audit_config(config)
+    assert len(plugins) == 0
+
+
+def test_more_set_headers_hsts_suppresses():
+    config = """
+    http {
+        server {
+            listen 443 ssl;
+            more_set_headers "Strict-Transport-Security: max-age=31536000";
+        }
+    }
+    """
+
+    plugins = _audit_config(config)
+    assert len(plugins) == 0
