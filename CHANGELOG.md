@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.32] - 2026-02-07
+
+### Fixed
+- **HSTS false positive**: `security_headers on;` (ngx_security_headers module) is now recognized as providing HSTS — no longer flags "Missing HSTS header".
+- **HSTS false positive**: `more_set_headers` setting `Strict-Transport-Security` is now recognized as providing HSTS.
+- **`ssl_prefer_server_ciphers` false positive**: Inverted the check — `on` is now flagged (LOW) instead of `off` (MEDIUM). All authoritative sources (Mozilla, nginx maintainers) recommend `off` for modern cipher lists.
+
 ## [0.2.29] - 2026-01-30
 
 ### Changed
