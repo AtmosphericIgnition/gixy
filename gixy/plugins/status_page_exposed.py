@@ -15,12 +15,36 @@ class status_page_exposed(Plugin):
     )
     directives = ["stub_status"]
 
+    def _server_uses_only_unix_sockets(self, directive):
+        """Check if the enclosing server block only listens on Unix sockets.
+
+        Args:
+            directive: The directive to check.
+
+        Returns:
+            True if the server block has at least one listen directive and all
+            of them use Unix sockets.
+        """
+        for parent in directive.parents:
+            if parent.name == "server":
+                listen_directives = parent.find("listen")
+                if not listen_directives:
+                    return False
+                return all(
+                    d.args and d.args[0].lower().startswith("unix:")
+                    for d in listen_directives
+                )
+        return False
+
     def audit(self, directive):
         """Audit stub_status directive for missing access restrictions.
 
         Args:
             directive: The stub_status directive to audit.
         """
+        if self._server_uses_only_unix_sockets(directive):
+            return
+
         parent = directive.parent
         if not parent:
             return
