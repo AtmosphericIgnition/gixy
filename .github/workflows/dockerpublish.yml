@@ -66,8 +66,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Smoke test image
+      - name: Test --help
         run: docker run --rm gixy:test --help
+
+      - name: Test analyzing nginx config
+        run: |
+          docker run --rm -v ${{ github.workspace }}/tests/integration:/configs:ro \
+            gixy:test /configs/wordpress_production.conf
 
       - name: Build and push Docker images (multi-arch)
         uses: docker/build-push-action@601a80b39c9405e50806ae38af30926f9d957c47 # v6
