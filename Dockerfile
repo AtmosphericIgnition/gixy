@@ -1,9 +1,11 @@
-FROM python:alpine  # NOSONAR
+# NOSONAR:docker:S6471 - Explicit non-root USER instruction follows
+FROM python:alpine
 
 # Create non-root user for security
 RUN adduser -D -u 1000 gixy
 
-COPY . /src  # NOSONAR
+# NOSONAR:docker:S6470 - .dockerignore excludes sensitive files
+COPY . /src
 
 WORKDIR /src
 
