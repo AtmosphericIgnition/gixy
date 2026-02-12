@@ -4,8 +4,6 @@ ReDoS (Regular Expression Denial of Service) detection plugin.
 This plugin analyzes regular expressions used in nginx configuration for
 patterns that may cause catastrophic backtracking, leading to denial of service.
 
-No external dependencies required - uses Python's built-in sre_parse module.
-
 Detects:
   - Nested quantifiers: (a+)+, (a*)+, ((ab)+)+ → exponential O(2^n) backtracking
   - Overlapping alternatives: (a|ab)+, (.|x)+ → polynomial O(n^2) backtracking
@@ -19,8 +17,9 @@ Example attack:
 """
 
 import re
-import sre_parse
-from sre_parse import (
+
+from gixy.core.sre_parse import sre_parse
+from gixy.core.sre_parse.sre_parse import (
     ANY,
     ASSERT,
     ASSERT_NOT,
@@ -168,7 +167,7 @@ class RedosAnalyzer:
                     )
 
             elif op == SUBPATTERN:
-                _, _, _, subpattern = av
+                _, subpattern = av
                 self._check_nested_quantifiers(subpattern, depth + 1, in_quantifier)
 
             elif op == BRANCH:
@@ -191,7 +190,7 @@ class RedosAnalyzer:
                 if max_repeat > 1 or max_repeat == sre_parse.MAXREPEAT:
                     return True
             elif op == SUBPATTERN:
-                _, _, _, subpattern = av
+                _, subpattern = av
                 if self._contains_quantifier(subpattern):
                     return True
             elif op == BRANCH:
@@ -236,7 +235,7 @@ class RedosAnalyzer:
                     self._check_overlapping_alternatives(subpattern, in_quantifier)
 
             elif op == SUBPATTERN:
-                _, _, _, subpattern = av
+                _, subpattern = av
                 self._check_overlapping_alternatives(subpattern, in_quantifier)
 
             elif op == BRANCH:
@@ -284,7 +283,7 @@ class RedosAnalyzer:
                 self._check_adjacent_quantifiers(subpattern, False)
 
             elif op == SUBPATTERN:
-                _, _, _, subpattern = av
+                _, subpattern = av
                 self._check_adjacent_quantifiers(subpattern, prev_was_greedy_quantifier)
 
             elif op == BRANCH:
@@ -332,7 +331,7 @@ class RedosAnalyzer:
                 if self._branches_overlap(branches):
                     return True
             elif op == SUBPATTERN:
-                _, _, _, subpattern = av
+                _, subpattern = av
                 if self._has_overlapping_branch(subpattern):
                     return True
             elif op in QUANTIFIERS:
@@ -374,7 +373,7 @@ class RedosAnalyzer:
             if op == ANY:
                 return True
             elif op == SUBPATTERN:
-                _, _, _, subpattern = av
+                _, subpattern = av
                 if self._contains_any(subpattern):
                     return True
             elif op == BRANCH:
@@ -411,7 +410,7 @@ class RedosAnalyzer:
                     return None
             return chars if chars else None
         elif op == SUBPATTERN:
-            _, _, _, subpattern = av
+            _, subpattern = av
             return self._get_first_chars(subpattern)
         elif op == BRANCH:
             _, branches = av
@@ -473,7 +472,6 @@ class regex_redos(Plugin):
 
     ═══════════════════════════════════════════════════════════════════
 
-    Zero external dependencies - uses Python's built-in sre_parse module.
     Analysis runs in milliseconds.
     """
 

@@ -675,6 +675,9 @@ def _parse(source, state):
                         raise error("unexpected end of pattern")
                     while source.next in FLAGS:
                         state.flags = state.flags | FLAGS[sourceget()]
+                    # Check for scoped inline flags: (?i:pattern)
+                    if sourcematch(":"):
+                        group = 2  # Treat as non-capturing group
             if group:
                 # parse group contents
                 if group == 2:
