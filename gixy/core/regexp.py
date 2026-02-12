@@ -215,7 +215,7 @@ class NotLiteralToken(Token):
         if self.can_contain(context.char):
             return context.char
 
-        return random.choice(self.gen_char_list)  # nosec B311 - test string generation, not crypto
+        return random.choice(self.gen_char_list)  # nosec B311 NOSONAR - test string generation, not crypto
 
     def __str__(self):
         return f"[^{self.char}]"

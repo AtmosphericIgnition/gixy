@@ -28,6 +28,7 @@ EXCLUDED_PATTERNS = [
 REQUIRED_FIELDS = ["title", "description"]
 
 # Regex to extract YAML front-matter
+# NOSONAR: python:S5852 - Non-greedy (.*?) bounded by anchors on trusted local files; no DoS risk
 FRONTMATTER_REGEX = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 
 
