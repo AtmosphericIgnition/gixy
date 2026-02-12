@@ -97,7 +97,7 @@ $ gixy /etc/nginx/nginx.conf
 
 Problem: [http_splitting] Possible HTTP-Splitting vulnerability.
 Description: Using variables that can contain "\n" may lead to http injection.
-Additional info: https://github.com/dvershinin/gixy/blob/master/docs/en/plugins/httpsplitting.md
+Additional info: https://github.com/dvershinin/gixy/blob/master/docs/en/checks/http-splitting.md
 Reason: At least variable "$action" can contain "\n"
 Pseudo config:
 include /etc/nginx/sites/default.conf;
@@ -206,8 +206,8 @@ $ docker run --rm -v `pwd`/nginx.conf:/etc/nginx/conf/nginx.conf getpagespeed/gi
 If you have an image that already contains your nginx configuration, you can share the configuration
 with the Gixy container as a volume.
 ```
-$  docker run --rm --name nginx -d -v /etc/nginx
-nginx:alpinef68f2833e986ae69c0a5375f9980dc7a70684a6c233a9535c2a837189f14e905
+$  docker run --rm --name nginx -d -v /etc/nginx nginx:alpine
+f68f2833e986ae69c0a5375f9980dc7a70684a6c233a9535c2a837189f14e905
 
 $  docker run --rm --volumes-from nginx dvershinin/gixy /etc/nginx/nginx.conf
 

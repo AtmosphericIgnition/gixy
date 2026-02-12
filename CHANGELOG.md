@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.34] - 2026-02-12
+
+### Fixed
+- **Documentation**: Fixed malformed Docker command in README and documentation (missing space before `nginx:alpine`).
+- **Documentation**: Updated outdated `/plugins/` paths to `/checks/` with kebab-case naming across all README and doc index files.
+- **Documentation**: Added missing `status_page_exposed` check to the Access Control section in English documentation index.
+- **CI/CD**: Changed PyPI publish workflow trigger from `release: created` to `release: published` for consistency with Docker publish workflow.
+- **Code**: Fixed double period typo in `gixy/core/variable.py` docstring.
+
 ## [0.2.33] - 2026-02-09
 
 ### Fixed

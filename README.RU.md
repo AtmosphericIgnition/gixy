@@ -18,14 +18,14 @@ Gixy — это утилита для анализа конфигурации Ng
 # Что умеет
 На текущий момент Gixy способна обнаружить:
 
-*   [[ssrf] Server Side Request Forgery](https://github.com/dvershinin/gixy/blob/master/docs/ru/plugins/ssrf.md)
-*   [[http_splitting] HTTP Splitting](https://github.com/dvershinin/gixy/blob/master/docs/ru/plugins/httpsplitting.md)
-*   [[origins] Проблемы валидации referrer/origin](https://github.com/dvershinin/gixy/blob/master/docs/ru/plugins/origins.md)
-*   [[add_header_redefinition] Переопределение "вышестоящих" заголовков ответа директивой "add_header"](https://github.com/dvershinin/gixy/blob/master/docs/ru/plugins/addheaderredefinition.md)
-*   [[host_spoofing] Подделка заголовка запроса Host](https://github.com/dvershinin/gixy/blob/master/docs/ru/plugins/hostspoofing.md)
-*   [[valid_referrers] none in valid_referrers](https://github.com/dvershinin/gixy/blob/master/docs/ru/plugins/validreferers.md)
-*   [[add_header_multiline] Многострочные заголовки ответа](https://github.com/dvershinin/gixy/blob/master/docs/ru/plugins/addheadermultiline.md)
-*   [[alias_traversal] Path traversal при использовании alias](https://github.com/dvershinin/gixy/blob/master/docs/ru/plugins/aliastraversal.md)
+*   [[ssrf] Server Side Request Forgery](https://github.com/dvershinin/gixy/blob/master/docs/ru/checks/ssrf.md)
+*   [[http_splitting] HTTP Splitting](https://github.com/dvershinin/gixy/blob/master/docs/ru/checks/http-splitting.md)
+*   [[origins] Проблемы валидации referrer/origin](https://github.com/dvershinin/gixy/blob/master/docs/ru/checks/origins.md)
+*   [[add_header_redefinition] Переопределение "вышестоящих" заголовков ответа директивой "add_header"](https://github.com/dvershinin/gixy/blob/master/docs/ru/checks/add-header-redefinition.md)
+*   [[host_spoofing] Подделка заголовка запроса Host](https://github.com/dvershinin/gixy/blob/master/docs/ru/checks/host-spoofing.md)
+*   [[valid_referrers] none in valid_referrers](https://github.com/dvershinin/gixy/blob/master/docs/ru/checks/valid-referers.md)
+*   [[add_header_multiline] Многострочные заголовки ответа](https://github.com/dvershinin/gixy/blob/master/docs/ru/checks/add-header-multiline.md)
+*   [[alias_traversal] Path traversal при использовании alias](https://github.com/dvershinin/gixy/blob/master/docs/ru/checks/alias-traversal.md)
 
 Проблемы, которым Gixy только учится, можно найти в [Issues с меткой "new plugin"](https://github.com/dvershinin/gixy/issues?q=is%3Aissue+is%3Aopen+label%3A%22new+plugin%22)
 
