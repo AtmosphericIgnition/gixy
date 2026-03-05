@@ -25,10 +25,6 @@ jobs:
             os: linux
             arch: x86_64
             artifact: gixy-linux-x86_64
-          - runner: ubuntu-24.04-arm
-            os: linux
-            arch: aarch64
-            artifact: gixy-linux-aarch64
           - runner: windows-latest
             os: windows
             arch: x64
