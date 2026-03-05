@@ -1,0 +1,86 @@
+name: Build frozen binaries
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    name: Build ${{ matrix.os }} (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-14
+            os: darwin
+            arch: arm64
+            artifact: gixy-darwin-arm64
+          - runner: macos-13
+            os: darwin
+            arch: x86_64
+            artifact: gixy-darwin-x86_64
+          - runner: ubuntu-latest
+            os: linux
+            arch: x86_64
+            artifact: gixy-linux-x86_64
+          - runner: ubuntu-24.04-arm
+            os: linux
+            arch: aarch64
+            artifact: gixy-linux-aarch64
+          - runner: windows-latest
+            os: windows
+            arch: x64
+            artifact: gixy-windows-x64.exe
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install . pyinstaller
+
+      - name: Build binary with PyInstaller
+        run: pyinstaller --onefile --name ${{ matrix.artifact }} gixy/__main__.py
+
+      - name: Verify binary runs
+        shell: bash
+        run: ./dist/${{ matrix.artifact }} --help
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: dist/${{ matrix.artifact }}
+
+  checksums:
+    name: Generate checksums and upload assets
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Collect binaries and generate checksums
+        run: |
+          mkdir -p release
+          find artifacts -type f | while read -r f; do
+            cp "$f" release/
+          done
+          cd release
+          sha256sum * > checksums.txt
+          cat checksums.txt
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
