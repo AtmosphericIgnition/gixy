@@ -47,7 +47,7 @@ jobs:
           pip install . pyinstaller
 
       - name: Build binary with PyInstaller
-        run: pyinstaller --onefile --name ${{ matrix.artifact }} gixy/__main__.py
+        run: pyinstaller --onefile --name ${{ matrix.artifact }} --collect-all crossplane --collect-all gixy gixy/__main__.py
 
       - name: Verify binary runs
         shell: bash
@@ -61,6 +61,7 @@ jobs:
 
   checksums:
     name: Generate checksums and upload assets
+    if: github.event_name == 'release'
     needs: build
     runs-on: ubuntu-latest
     permissions:
