@@ -304,6 +304,14 @@ def _get_cli_parser():
         help="Don't create .bak backup files when applying fixes (use with --fix)",
     )
 
+    parser.add_argument(
+        "--server",
+        dest="server",
+        action="store_true",
+        default=False,
+        help="Run in server mode (NDJSON over stdin/stdout)",
+    )
+
     group = parser.add_argument_group("check options")
     for plugin_cls in PluginsManager().plugins_classes:
         name = plugin_cls.__name__
@@ -335,6 +343,21 @@ def main():
     parser = _get_cli_parser()
     args = parser.parse_args()
     _init_logger(args.debug)
+
+    if args.server:
+        try:
+            severity = gixy.severity.ALL[args.level]
+        except IndexError:
+            severity = gixy.severity.ALL[0]
+
+        config = Config(
+            severity=severity,
+            allow_includes=not args.disable_includes,
+        )
+        from gixy.cli.server import run_server
+
+        run_server(config)
+        sys.exit(0)
 
     # generate a list of user-expanded absolute paths from the nginx_files input arguments
     nginx_files = []
