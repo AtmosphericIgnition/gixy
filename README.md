@@ -4,7 +4,7 @@ GIXY
 
 [![Mozilla Public License 2.0](https://img.shields.io/badge/license-MPLv2.0-brightgreen?style=flat-square)](https://github.com/dvershinin/gixy/blob/master/LICENSE)
 [![Python tests](https://github.com/dvershinin/gixy/actions/workflows/pythonpackage.yml/badge.svg)](https://github.com/dvershinin/gixy/actions/workflows/pythonpackage.yml)
-[![Your feedback is greatly appreciated](https://img.shields.io/maintenance/yes/2025.svg?style=flat-square)](https://github.com/dvershinin/gixy/issues/new)
+[![Your feedback is greatly appreciated](https://img.shields.io/maintenance/yes/2026.svg?style=flat-square)](https://github.com/dvershinin/gixy/issues/new)
 [![GitHub issues](https://img.shields.io/github/issues/dvershinin/gixy.svg?style=flat-square)](https://github.com/dvershinin/gixy/issues)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/dvershinin/gixy.svg?style=flat-square)](https://github.com/dvershinin/gixy/pulls)
 [![NGINX Extras](https://img.shields.io/badge/NGINX%20Extras-Subscribe-blue?logo=nginx&style=flat-square)](https://nginx-extras.getpagespeed.com/)
@@ -222,6 +222,18 @@ Total issues:
     High: 0
 
 ```
+
+## JetBrains IDEs (IntelliJ, PyCharm, WebStorm, GoLand, …)
+
+[![JetBrains Plugin](https://img.shields.io/jetbrains/plugin/v/30510-gixy?label=JetBrains%20Marketplace&logo=jetbrains&style=flat-square)](https://plugins.jetbrains.com/plugin/30510-gixy)
+
+Real-time NGINX security analysis in any JetBrains IDE. No Python required — the plugin auto-downloads a native Gixy binary.
+
+**[Install from JetBrains Marketplace](https://plugins.jetbrains.com/plugin/30510-gixy)**
+
+Or search for **"Gixy"** in your IDE's plugin settings (*Settings → Plugins → Marketplace*).
+
+See [gixy-jetbrains](https://github.com/GetPageSpeed/gixy-jetbrains) for full documentation.
 
 ## VS Code / Cursor Extension
 

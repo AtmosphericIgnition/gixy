@@ -1,11 +1,45 @@
 ---
 title: "IDE Integration"
-description: "Use Gixy directly in your IDE with the Visual Studio Code extension for real-time NGINX security analysis."
+description: "Use Gixy directly in your IDE — JetBrains plugin or VS Code extension — for real-time NGINX security analysis."
 ---
 
 # IDE Integration
 
 Get real-time NGINX security feedback directly in your editor.
+
+## JetBrains IDEs (IntelliJ, PyCharm, WebStorm, GoLand, …)
+
+The [gixy-jetbrains](https://github.com/GetPageSpeed/gixy-jetbrains) plugin brings Gixy's security analysis to all JetBrains IDEs. **No Python installation required** — the plugin automatically downloads a native Gixy binary for your platform.
+
+[![JetBrains Plugin](https://img.shields.io/jetbrains/plugin/v/30510-gixy?label=JetBrains%20Marketplace&logo=jetbrains&style=flat-square)](https://plugins.jetbrains.com/plugin/30510-gixy)
+
+### Features
+
+- **Zero setup** — auto-downloads a platform-specific Gixy binary; no Python needed
+- **Real-time scanning** — automatic analysis as you edit NGINX config files
+- **Inline diagnostics** — security issues highlighted directly in the editor with severity markers
+- **Quick fixes** — one-click remediation for supported issues
+- **Problem panel integration** — all issues listed in the IDE's Inspections/Problems panel
+
+### Installation
+
+1. Open your JetBrains IDE
+2. Go to **Settings → Plugins → Marketplace**
+3. Search for **"Gixy"**
+4. Click **Install** and restart the IDE
+
+Or install directly from [JetBrains Marketplace](https://plugins.jetbrains.com/plugin/30510-gixy).
+
+### Configuration
+
+Configure the plugin in **Settings → Tools → Gixy**:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Gixy executable | *(auto-downloaded)* | Path to the Gixy binary. Leave blank to use the bundled binary. |
+| Run on save | `true` | Analyse files automatically when saved |
+| Run on open | `true` | Analyse files when first opened |
+| Severity mapping | *(built-in)* | Maps Gixy severity levels to IDE inspection severities |
 
 ## Visual Studio Code
 
@@ -63,13 +97,6 @@ Issues are displayed inline with severity indicators:
 Click on any issue to see detailed information and documentation links.
 
 ## Other Editors
-
-### JetBrains IDEs (IntelliJ, PyCharm, WebStorm)
-
-Use the [Checkstyle-IDEA plugin](https://plugins.jetbrains.com/plugin/1065-checkstyle-idea) with Gixy's checkstyle output:
-
-1. Run `gixy --format checkstyle nginx.conf > gixy-report.xml`
-2. Import the report in the Checkstyle plugin
 
 ### Vim/Neovim
 
