@@ -82,4 +82,4 @@ http {
 
 ## Fix
 
-Disable `quic_bpf` by changing `quic_bpf on;` to `quic_bpf off;` in the `events {}` block. Alternatively, use [nginx-mod](https://nginx-extras.getpagespeed.com/modules/) which includes the fix.
+Disable `quic_bpf` by changing `quic_bpf on;` to `quic_bpf off;` in the `events {}` block. Alternatively, use [nginx-mod](https://www.getpagespeed.com/nginx-mod-a-better-faster-nginx-build) which includes the fix.
