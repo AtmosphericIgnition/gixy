@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.38] - 2026-03-17
+
+### Fixed
+- **`quic_bpf_reuseport`**: Improved fix description to mention [nginx-mod](https://nginx-extras.getpagespeed.com/modules/) as an alternative to disabling `quic_bpf`.
+
 ## [0.2.37] - 2026-03-17
 
 ### Added
