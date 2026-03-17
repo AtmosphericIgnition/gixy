@@ -78,14 +78,19 @@ class quic_bpf_reuseport(Plugin):
                         reason=(
                             "quic_bpf on + reuseport on a QUIC listener with "
                             "multiple workers causes ~50%% QUIC connection "
-                            "drops after reload (nginx/nginx#425)."
+                            "drops after reload (nginx/nginx#425). "
+                            "Either disable quic_bpf or switch to nginx-mod "
+                            "which includes the fix for this bug."
                         ),
                         fixes=[
                             self.make_fix(
                                 title="Disable quic_bpf",
                                 search="quic_bpf on",
                                 replace="quic_bpf off",
-                                description="Turn off quic_bpf to prevent stale BPF reuseport maps after reload.",
+                                description=(
+                                    "Turn off quic_bpf to prevent stale BPF reuseport maps after reload. "
+                                    "Alternatively, switch to nginx-mod which includes the actual fix."
+                                ),
                             ),
                         ],
                     )
