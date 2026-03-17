@@ -29,7 +29,7 @@ Gixy detects a wide range of security issues across these categories:
 | Category | Security Checks |
 |----------|-----------------|
 | 🔓 **Injection & Forgery** | [SSRF][ssrf] &#183; [HTTP Splitting][http_splitting] &#183; [Host Spoofing][host_spoofing] &#183; [Origin Bypass][origins] |
-| 🔐 **TLS & Encryption** | [Weak SSL/TLS][weak_ssl_tls] &#183; [HTTP/2 Misdirected Request][http2_misdirected_request] &#183; [Version Disclosure][version_disclosure] |
+| 🔐 **TLS & Encryption** | [Weak SSL/TLS][weak_ssl_tls] &#183; [HTTP/2 Misdirected Request][http2_misdirected_request] &#183; [QUIC BPF Reuseport][quic_bpf_reuseport] &#183; [Version Disclosure][version_disclosure] |
 | 📂 **Path Traversal** | [Alias Traversal][alias_traversal] &#183; [Proxy Pass Normalized][proxy_pass_normalized] |
 | 📋 **Header Security** | [HSTS Header][hsts_header] &#183; [Header Redefinition][add_header_redefinition] &#183; [Multiline Headers][add_header_multiline] &#183; [Content-Type via add_header][add_header_content_type] |
 | 🚦 **Access Control** | [Allow Without Deny][allow_without_deny] &#183; [Return Bypasses ACL][return_bypasses_allow_deny] &#183; [Valid Referers][valid_referers] &#183; [Status Page Exposed][status_page_exposed] |
@@ -45,6 +45,7 @@ Gixy detects a wide range of security issues across these categories:
 [origins]: https://gixy.getpagespeed.com/plugins/origins/
 [weak_ssl_tls]: https://gixy.getpagespeed.com/plugins/weak_ssl_tls/
 [http2_misdirected_request]: https://gixy.getpagespeed.com/plugins/http2_misdirected_request/
+[quic_bpf_reuseport]: https://gixy.getpagespeed.com/plugins/quic_bpf_reuseport/
 [hsts_header]: https://gixy.getpagespeed.com/plugins/hsts_header/
 [version_disclosure]: https://gixy.getpagespeed.com/plugins/version_disclosure/
 [alias_traversal]: https://gixy.getpagespeed.com/plugins/aliastraversal/
