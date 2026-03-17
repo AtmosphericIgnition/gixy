@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.37] - 2026-03-17
+
+### Added
+- **New check: `quic_bpf_reuseport`**: Detects dangerous combination of `quic_bpf on` + `reuseport` on QUIC listeners + multiple workers that silently drops ~50% of QUIC connections after `nginx -s reload` ([#104](https://github.com/dvershinin/gixy/issues/104), [nginx/nginx#425](https://github.com/nginx/nginx/issues/425)).
+
 ## [0.2.34] - 2026-02-12
 
 ### Fixed
