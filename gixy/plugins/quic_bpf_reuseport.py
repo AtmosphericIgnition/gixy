@@ -2,7 +2,7 @@
 Plugin to detect the quic_bpf + reuseport + multiple workers combination.
 
 When all three conditions are met simultaneously:
-1. ``quic_bpf on;`` in the ``events {}`` block
+1. ``quic_bpf on;`` in the main context
 2. ``reuseport`` on a QUIC listen socket
 3. ``worker_processes`` > 1 (or ``auto``)
 
@@ -31,17 +31,8 @@ class quic_bpf_reuseport(Plugin):
         return
 
     def post_audit(self, root):
-        # 1. Find events {} block and check for quic_bpf on
-        events_block = None
-        for child in root.children:
-            if child.name == "events":
-                events_block = child
-                break
-
-        if not events_block:
-            return
-
-        quic_bpf = events_block.some("quic_bpf")
+        # 1. Check for quic_bpf on in the main context
+        quic_bpf = root.some("quic_bpf")
         if not quic_bpf or not quic_bpf.args or quic_bpf.args[0] != "on":
             return
 

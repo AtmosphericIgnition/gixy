@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.39] - 2026-03-17
+
+### Fixed
+- **`quic_bpf_reuseport`**: Detect `quic_bpf` directive in the main context (top level) where NGINX docs place it, not only inside `events {}` ([#104](https://github.com/dvershinin/gixy/issues/104)).
+
 ## [0.2.38] - 2026-03-17
 
 ### Fixed
