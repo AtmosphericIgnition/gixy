@@ -88,6 +88,9 @@ class weak_ssl_tls(Plugin):
     directives = ["ssl_protocols", "ssl_ciphers", "ssl_prefer_server_ciphers"]
     supports_full_config = True
 
+    # Protocols where ssl_ciphers has no effect (uses SSL_CTX_set_ciphersuites instead)
+    TLS13_AND_ABOVE = {"TLSv1.3"}
+
     def audit(self, directive):
         """Audit individual SSL/TLS directives."""
         if directive.name == "ssl_protocols":
@@ -96,6 +99,34 @@ class weak_ssl_tls(Plugin):
             self._check_ciphers(directive)
         elif directive.name == "ssl_prefer_server_ciphers":
             self._check_prefer_server_ciphers(directive)
+
+    def _get_effective_protocols(self, block):
+        """Get effective ssl_protocols from block or its parent.
+
+        Returns:
+            Set of protocol strings, or None if no ssl_protocols found.
+        """
+        protocols_dir = block.some("ssl_protocols")
+        if protocols_dir:
+            return set(protocols_dir.args)
+        if block.parent:
+            protocols_dir = block.parent.some("ssl_protocols")
+            if protocols_dir:
+                return set(protocols_dir.args)
+        return None
+
+    def _is_tls13_only(self, protocols):
+        """Return True if only TLSv1.3 (or higher) is configured.
+
+        Args:
+            protocols: Set of protocol strings, or None.
+
+        Returns:
+            True if all configured protocols are TLSv1.3+.
+        """
+        if not protocols:
+            return False
+        return protocols.issubset(self.TLS13_AND_ABOVE)
 
     def _check_protocols(self, directive):
         """Check for insecure protocols in ssl_protocols directive."""
@@ -129,6 +160,11 @@ class weak_ssl_tls(Plugin):
 
     def _check_ciphers(self, directive):
         """Check for weak ciphers in ssl_ciphers directive."""
+        # ssl_ciphers only affects TLSv1.2 and below (SSL_CTX_set_cipher_list).
+        # TLSv1.3 ciphersuites are controlled via ssl_conf_command Ciphersuites.
+        if self._is_tls13_only(self._get_effective_protocols(directive.parent)):
+            return
+
         cipher_string = directive.args[0] if directive.args else ""
 
         # Parse cipher string - it's colon-separated
@@ -247,6 +283,13 @@ class weak_ssl_tls(Plugin):
                 )
 
             # Check for missing ssl_ciphers
+            # Skip if TLSv1.3-only — ssl_ciphers is irrelevant
+            effective_protocols = self._get_effective_protocols(server_block)
+            if effective_protocols is None and http_protocols:
+                effective_protocols = set(http_protocols.args)
+            if self._is_tls13_only(effective_protocols):
+                continue
+
             http_ciphers = http_block.some("ssl_ciphers")
             server_ciphers = server_block.some("ssl_ciphers")
 
