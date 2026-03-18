@@ -215,9 +215,34 @@ class weak_ssl_tls(Plugin):
                 ],
             )
 
+    def _has_prioritize_chacha(self, block):
+        """Check if PrioritizeChaCha is configured via ssl_conf_command.
+
+        Args:
+            block: The directive's parent block to search in.
+
+        Returns:
+            True if ssl_conf_command Options PrioritizeChaCha is found.
+        """
+        for ctx in (block, block.parent) if block.parent else (block,):
+            if ctx is None:
+                continue
+            for d in ctx.find("ssl_conf_command"):
+                if (
+                    len(d.args) >= 2
+                    and d.args[0] == "Options"
+                    and d.args[1] == "PrioritizeChaCha"
+                ):
+                    return True
+        return False
+
     def _check_prefer_server_ciphers(self, directive):
         """Check if ssl_prefer_server_ciphers is unnecessarily enabled."""
         if directive.args and directive.args[0] == "on":
+            # PrioritizeChaCha achieves the same goal — server controls order
+            # but defers to ChaCha-preferring clients (SSL_OP_PRIORITIZE_CHACHA)
+            if self._has_prioritize_chacha(directive.parent):
+                return
             self.add_issue(
                 severity=gixy.severity.LOW,
                 directive=[directive, directive.parent],

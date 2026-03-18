@@ -39,6 +39,8 @@ Detects cipher suites that should be avoided:
 ### 3. Server Cipher Preference
 Detects when `ssl_prefer_server_ciphers` is set to `on`. With modern cipher lists containing only strong AEAD ciphers, server cipher preference is unnecessary and may hurt performance — mobile clients without AES-NI hardware benefit from choosing ChaCha20-Poly1305 over AES-GCM. Both [Mozilla](https://ssl-config.mozilla.org/) and nginx maintainers recommend `off`.
 
+**Exception:** This check is suppressed when `ssl_conf_command Options PrioritizeChaCha` is also configured. OpenSSL's `SSL_OP_PRIORITIZE_CHACHA` (available since OpenSSL 1.1.1) automatically prefers ChaCha20-Poly1305 for clients that signal preference for it, while still letting the server control cipher ordering for other clients. This is a well-known pattern that addresses the underlying concern.
+
 ## Examples
 
 ### ❌ Bad: Insecure protocols enabled
@@ -67,6 +69,17 @@ server {
 }
 ```
 **Issue**: `Server cipher preference enabled unnecessarily` (LOW)
+
+### ✅ Good: Server cipher preference with PrioritizeChaCha
+```nginx
+server {
+    listen 443 ssl;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    ssl_conf_command Options PrioritizeChaCha;
+}
+```
+No issue — `PrioritizeChaCha` ensures ChaCha20 is preferred for clients that need it.
 
 ### ✅ Good: Secure configuration
 ```nginx
