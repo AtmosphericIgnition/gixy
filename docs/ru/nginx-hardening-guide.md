@@ -75,7 +75,8 @@ server {
 
 ```nginx
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;
     server_name example.com;
 
     # Только современные протоколы
@@ -123,7 +124,8 @@ server {
 
 ```nginx
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;
 
     # HSTS с max-age 1 год и включением поддоменов
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
@@ -151,7 +153,8 @@ server {
 
 ```nginx
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;
 
     # Предотвращение clickjacking
     add_header X-Frame-Options "SAMEORIGIN" always;

@@ -75,7 +75,8 @@ server {
 
 ```nginx
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;
     server_name example.com;
 
     # Modern protocols only
@@ -123,7 +124,8 @@ server {
 
 ```nginx
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;
 
     # HSTS with 1 year max-age and subdomain inclusion
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
@@ -151,7 +153,8 @@ Security headers provide defense-in-depth against various client-side attacks.
 
 ```nginx
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
+    http2 on;
 
     # Prevent clickjacking
     add_header X-Frame-Options "SAMEORIGIN" always;
