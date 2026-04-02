@@ -535,7 +535,6 @@ http {
     ssl_prefer_server_ciphers off;
     ssl_session_timeout 1d;
     ssl_session_cache shared:SSL:10m;
-    ssl_session_tickets off;
 
     # Логирование
     log_format security '$remote_addr - $remote_user [$time_local] '

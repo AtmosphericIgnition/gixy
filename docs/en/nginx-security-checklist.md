@@ -52,7 +52,6 @@ A comprehensive, actionable checklist for securing your NGINX server. Use this f
     ssl_prefer_server_ciphers off;
     ssl_session_timeout 1d;
     ssl_session_cache shared:SSL:10m;
-    ssl_session_tickets off;
     ```
 
 :white_check_mark: **Gixy Check:** [`weak_ssl_tls`](checks/weak-ssl-tls.md)
